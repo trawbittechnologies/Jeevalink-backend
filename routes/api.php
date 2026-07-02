@@ -75,6 +75,7 @@ Route::prefix('v1')->group(function () {
             Route::post('/admin/volunteers', [AdminController::class, 'addVolunteer']); // Generic user add
             
             // Volunteer OTP & Update Routes
+            Route::post('/volunteer/users', [VolunteerController::class, 'addUser']);
             Route::post('/volunteer/users/{id}/send-otp', [VolunteerController::class, 'sendOtp']);
             Route::post('/volunteer/users/{id}/verify-otp', [VolunteerController::class, 'verifyOtp']);
             Route::patch('/volunteer/users/{id}', [VolunteerController::class, 'updateUser']);

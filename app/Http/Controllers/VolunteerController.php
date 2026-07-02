@@ -7,7 +7,10 @@ use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use App\Mail\VolunteerUserOtpMail;
+use App\Mail\UserWelcomeMail;
 
 class VolunteerController extends Controller
 {
@@ -160,5 +163,79 @@ class VolunteerController extends Controller
                 'user' => User::findById($user->id)
             ]
         ]);
+    }
+
+    /**
+     * Add a new user (donor/patient). Generates a password and sends it via email.
+     */
+    public function addUser(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'full_name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'mobile' => 'required|string|max:20',
+            'role' => 'required|in:donor,patient',
+            'city' => 'required|string|max:100',
+            'district' => 'required|string|max:100',
+            'blood_group' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        if (User::where('email', $request->email)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Email already in use',
+                'errors' => ['email' => ['This email address is already registered.']]
+            ], 409);
+        }
+
+        if (User::where('mobile', $request->mobile)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Mobile number already in use',
+                'errors' => ['mobile' => ['This mobile number is already registered.']]
+            ], 409);
+        }
+
+        $password = Str::random(10);
+
+        $user = User::create([
+            'full_name' => $request->full_name,
+            'email' => $request->email,
+            'mobile' => $request->mobile,
+            'password_hash' => Hash::make($password),
+            'role' => $request->role,
+            'blood_group' => $request->blood_group,
+            'city' => $request->city,
+            'district' => $request->district,
+            'status' => 'Active',
+            'is_verified' => true,
+        ]);
+
+        $emailSent = false;
+        try {
+            $loginUrl = env('FRONTEND_URL', 'http://localhost:5173') . '/login';
+            Mail::to($user->email)->send(
+                new UserWelcomeMail($user->full_name, $user->email, $password, $loginUrl)
+            );
+            $emailSent = true;
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Failed to send user welcome email: " . $e->getMessage());
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $emailSent ? 'User added successfully and credentials sent to email.' : 'User added successfully, but failed to send credentials email.',
+            'data' => [
+                'user' => User::findById($user->id)
+            ]
+        ], 201);
     }
 }
