@@ -18,6 +18,8 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
+        'name',
+        'password',
         'full_name',
         'email',
         'mobile',
@@ -50,6 +52,30 @@ class User extends Authenticatable
         'eligibility_checked_at',
         'sex',
     ];
+
+    /**
+     * Auto-populate the base `name` column from `full_name` on SQLite
+     * (the initial Laravel migration requires name NOT NULL).
+     */
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::creating(function (self $user) {
+            if (empty($user->name)) {
+                $user->name = $user->full_name ?? 'User';
+            }
+            if (empty($user->password) && !empty($user->password_hash)) {
+                $user->password = $user->password_hash;
+            }
+        });
+
+        static::updating(function (self $user) {
+            if (empty($user->name) && !empty($user->full_name)) {
+                $user->name = $user->full_name;
+            }
+        });
+    }
 
     /**
      * The attributes that should be hidden for serialization.
