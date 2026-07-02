@@ -25,6 +25,9 @@ mkdir -p /var/www/html/storage/framework/cache/data \
 echo "--- Running migrations ---"
 php artisan migrate --force || true
 
+echo "--- Creating Storage Link ---"
+php artisan storage:link || true
+
 echo "--- Fixing Runtime Ownership ---"
 chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
