@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip raw PostgreSQL schema on SQLite – Laravel migrations handle all tables
+        if (config('database.default') === 'sqlite') {
+            return;
+        }
+
         $schemaPath = base_path('schema.sql');
         if (File::exists($schemaPath)) {
             DB::unprepared(File::get($schemaPath));
