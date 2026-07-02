@@ -455,7 +455,7 @@ class AdminController extends Controller
                 new \App\Mail\VolunteerWelcomeMail($user->full_name, $user->email, $password, $loginUrl)
             );
             $emailSent = true;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error("Failed to send volunteer welcome email: " . $e->getMessage());
         }
 

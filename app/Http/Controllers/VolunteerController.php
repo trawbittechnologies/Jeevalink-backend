@@ -37,7 +37,7 @@ class VolunteerController extends Controller
         // Send email
         try {
             Mail::to($user->email)->send(new VolunteerUserOtpMail($otp, $user->full_name));
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error("Failed to send OTP email: " . $e->getMessage());
             return response()->json([
                 'success' => false,
@@ -255,7 +255,7 @@ class VolunteerController extends Controller
                 new UserWelcomeMail($user->full_name, $user->email, $password, $loginUrl)
             );
             $emailSent = true;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error("Failed to send user welcome email: " . $e->getMessage());
         }
 

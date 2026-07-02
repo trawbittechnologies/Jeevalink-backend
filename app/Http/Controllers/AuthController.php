@@ -399,7 +399,7 @@ class AuthController extends Controller
                 'success' => true,
                 'message' => 'Password reset link sent to your email.'
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::info("Reset link for {$request->email}: $resetUrl");
             \Illuminate\Support\Facades\Log::error("Failed to send reset email: " . $e->getMessage());
             
