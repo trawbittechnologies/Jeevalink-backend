@@ -174,10 +174,16 @@ class VolunteerController extends Controller
             'full_name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'mobile' => 'required|string|max:20',
-            'role' => 'required|in:donor,patient',
+            'role' => 'nullable|in:donor,patient',
             'city' => 'required|string|max:100',
             'district' => 'required|string|max:100',
             'blood_group' => 'required|string',
+            'dob' => 'required|date',
+            'sex' => 'required|in:male,female,transgender',
+            'pincode' => 'required|string|size:6',
+            'full_address' => 'required|string|min:5',
+            'id_proof_front' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'id_proof_back' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -206,15 +212,31 @@ class VolunteerController extends Controller
 
         $password = Str::random(10);
 
+        $idProofFrontPath = null;
+        if ($request->hasFile('id_proof_front')) {
+            $idProofFrontPath = $request->file('id_proof_front')->store('id_proofs', 'public');
+        }
+
+        $idProofBackPath = null;
+        if ($request->hasFile('id_proof_back')) {
+            $idProofBackPath = $request->file('id_proof_back')->store('id_proofs', 'public');
+        }
+
         $user = User::create([
             'full_name' => $request->full_name,
             'email' => $request->email,
             'mobile' => $request->mobile,
             'password_hash' => Hash::make($password),
-            'role' => $request->role,
+            'role' => $request->role ?? 'donor',
             'blood_group' => $request->blood_group,
             'city' => $request->city,
             'district' => $request->district,
+            'dob' => $request->dob,
+            'sex' => $request->sex,
+            'pincode' => $request->pincode,
+            'full_address' => $request->full_address,
+            'id_proof_front' => $idProofFrontPath,
+            'id_proof_back' => $idProofBackPath,
             'status' => 'Active',
             'is_verified' => true,
         ]);
