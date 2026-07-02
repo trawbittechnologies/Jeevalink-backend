@@ -10,6 +10,7 @@ use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\SupportTicketController;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\PartnerController;
+use App\Http\Controllers\VolunteerController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -70,17 +71,22 @@ Route::prefix('v1')->group(function () {
         // ─── Admin/Volunteer Shared Routes ──────────────────────────────────
         Route::middleware('jwt.role:admin,volunteer')->group(function () {
             Route::patch('/requests/{id}/verify', [RequestController::class, 'verify']);
+            Route::get('/admin/users', [AdminController::class, 'getUsers']);
+            Route::post('/admin/volunteers', [AdminController::class, 'addVolunteer']); // Generic user add
+            
+            // Volunteer OTP & Update Routes
+            Route::post('/volunteer/users/{id}/send-otp', [VolunteerController::class, 'sendOtp']);
+            Route::post('/volunteer/users/{id}/verify-otp', [VolunteerController::class, 'verifyOtp']);
+            Route::patch('/volunteer/users/{id}', [VolunteerController::class, 'updateUser']);
         });
 
         // ─── Admin Only Routes ──────────────────────────────────────────────
         Route::middleware('jwt.role:admin')->group(function () {
 
             // Existing Admin Routes
-            Route::post('/admin/volunteers', [AdminController::class, 'addVolunteer']);
             Route::get('/admin/complaints', [AdminController::class, 'getComplaints']);
             Route::patch('/admin/complaints/{id}/resolve', [AdminController::class, 'resolveComplaint']);
             Route::patch('/admin/users/{id}/status', [AdminController::class, 'updateUserStatus']);
-            Route::get('/admin/users', [AdminController::class, 'getUsers']);
             Route::delete('/admin/users/{id}', [AdminController::class, 'deleteUser']);
 
             Route::post('/admin/users/{id}/warn', [AdminController::class, 'warnUser']);
