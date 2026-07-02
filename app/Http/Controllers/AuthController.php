@@ -31,6 +31,7 @@ class AuthController extends Controller
             'id_proof_front' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
             'id_proof_back' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
             'sex' => 'nullable|in:male,female,transgender',
+            'profile_picture' => 'required_if:role,donor|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -73,6 +74,11 @@ class AuthController extends Controller
             $idProofBackPath = $request->file('id_proof_back')->store('id_proofs', 'public');
         }
 
+        $profilePicturePath = null;
+        if ($request->hasFile('profile_picture')) {
+            $profilePicturePath = $request->file('profile_picture')->store('profile_pictures', 'public');
+        }
+
         $user = User::create([
             'full_name' => $request->full_name,
             'email' => $request->email,
@@ -87,7 +93,7 @@ class AuthController extends Controller
             'weight' => $request->weight ?? null,
             'dob' => $request->dob ?? null,
             'last_donated_date' => $request->last_donated_date ?? null,
-            'profile_picture' => $request->profile_picture ?? null,
+            'profile_picture' => $profilePicturePath,
             'id_proof_front' => $idProofFrontPath,
             'id_proof_back' => $idProofBackPath,
             'is_verified' => false,

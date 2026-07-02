@@ -184,6 +184,7 @@ class VolunteerController extends Controller
             'full_address' => 'required|string|min:5',
             'id_proof_front' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
             'id_proof_back' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'profile_picture' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -222,6 +223,11 @@ class VolunteerController extends Controller
             $idProofBackPath = $request->file('id_proof_back')->store('id_proofs', 'public');
         }
 
+        $profilePicturePath = null;
+        if ($request->hasFile('profile_picture')) {
+            $profilePicturePath = $request->file('profile_picture')->store('profile_pictures', 'public');
+        }
+
         $user = User::create([
             'full_name' => $request->full_name,
             'email' => $request->email,
@@ -237,6 +243,7 @@ class VolunteerController extends Controller
             'full_address' => $request->full_address,
             'id_proof_front' => $idProofFrontPath,
             'id_proof_back' => $idProofBackPath,
+            'profile_picture' => $profilePicturePath,
             'status' => 'Active',
             'is_verified' => true,
         ]);
