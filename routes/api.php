@@ -24,6 +24,21 @@ Route::prefix('v1')->group(function () {
     Route::get('/location/pincode/{pincode}', [AuthController::class, 'pincodeLookup']);
     Route::post('/test-notification', [NotificationController::class, 'testNotification']);
     Route::get('/partners', [PartnerController::class, 'index']);
+    // ─── Mail Diagnostic Route (debug only) ───────────────────────────────
+    Route::get('/test-mail', function () {
+        try {
+            \Illuminate\Support\Facades\Mail::raw(
+                'This is a test email from JeevaLink to verify SMTP is working. Config: host=' . env('MAIL_HOST') . ' port=' . env('MAIL_PORT') . ' enc=' . env('MAIL_ENCRYPTION'),
+                function ($message) {
+                    $message->to(env('MAIL_FROM_ADDRESS', 'trawbittechnologies@gmail.com'))
+                            ->subject('JeevaLink SMTP Test - ' . now());
+                }
+            );
+            return response()->json(['success' => true, 'message' => 'Test email sent successfully! Check inbox.', 'config' => ['host' => env('MAIL_HOST'), 'port' => env('MAIL_PORT'), 'encryption' => env('MAIL_ENCRYPTION'), 'from' => env('MAIL_FROM_ADDRESS')]]);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage(), 'config' => ['host' => env('MAIL_HOST'), 'port' => env('MAIL_PORT'), 'encryption' => env('MAIL_ENCRYPTION'), 'from' => env('MAIL_FROM_ADDRESS')]]);
+        }
+    });
 
     // ─── Authenticated Routes Group ──────────────────────────────────────
     Route::middleware('jwt.auth')->group(function () {

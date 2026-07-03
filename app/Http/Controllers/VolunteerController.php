@@ -256,7 +256,9 @@ class VolunteerController extends Controller
             );
             $emailSent = true;
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error("Failed to send user welcome email: " . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error("[addUser] Failed to send welcome email to {$user->email}: " . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error("[addUser] SMTP Config: host=" . env('MAIL_HOST') . " port=" . env('MAIL_PORT') . " user=" . env('MAIL_USERNAME') . " enc=" . env('MAIL_ENCRYPTION'));
+            \Illuminate\Support\Facades\Log::error($e->getTraceAsString());
         }
 
         return response()->json([
