@@ -62,17 +62,23 @@ class User extends Authenticatable
         parent::boot();
 
         static::creating(function (self $user) {
-            if (empty($user->name)) {
-                $user->name = $user->full_name ?? 'User';
-            }
-            if (empty($user->password) && !empty($user->password_hash)) {
-                $user->password = $user->password_hash;
+            $isSqlite = \Illuminate\Support\Facades\DB::connection()->getDriverName() === 'sqlite';
+            if ($isSqlite) {
+                if (empty($user->name)) {
+                    $user->name = $user->full_name ?? 'User';
+                }
+                if (empty($user->password) && !empty($user->password_hash)) {
+                    $user->password = $user->password_hash;
+                }
             }
         });
 
         static::updating(function (self $user) {
-            if (empty($user->name) && !empty($user->full_name)) {
-                $user->name = $user->full_name;
+            $isSqlite = \Illuminate\Support\Facades\DB::connection()->getDriverName() === 'sqlite';
+            if ($isSqlite) {
+                if (empty($user->name) && !empty($user->full_name)) {
+                    $user->name = $user->full_name;
+                }
             }
         });
     }
