@@ -45,6 +45,12 @@ class UserWelcomeMail extends Mailable
     {
         return new Content(
             view: 'emails.user_welcome',
+            with: [
+                'userName' => $this->userName,
+                'email'    => $this->email,
+                'password' => $this->password,
+                'loginUrl' => $this->loginUrl,
+            ],
         );
     }
 
