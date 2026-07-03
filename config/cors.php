@@ -19,16 +19,27 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],
+    // NOTE: '*' cannot be used here when supports_credentials is true.
+    // List your Vercel frontend URL and any preview/localhost URLs.
+    'allowed_origins' => [
+        'http://localhost:5173',
+        'http://127.0.0.1:5173',
+        'http://localhost:3000',
+        // Add your Vercel production URL below (e.g. https://jeevalink.vercel.app)
+        env('FRONTEND_URL', 'https://jeevalink.vercel.app'),
+    ],
 
-    'allowed_origins_patterns' => [],
+    'allowed_origins_patterns' => [
+        // Allow all Vercel preview deployments
+        '#^https://jeevalink.*\.vercel\.app$#',
+    ],
 
     'allowed_headers' => ['*'],
 
-    'exposed_headers' => [],
+    'exposed_headers' => ['Authorization'],
 
-    'max_age' => 0,
+    'max_age' => 86400,
 
-    'supports_credentials' => false,
+    'supports_credentials' => true,
 
 ];
