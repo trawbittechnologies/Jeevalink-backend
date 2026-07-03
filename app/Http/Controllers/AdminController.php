@@ -463,9 +463,11 @@ class AdminController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => $emailSent ? 'Volunteer added successfully and credentials sent to email.' : 'Volunteer added successfully, but failed to send credentials email.',
+            'message' => $emailSent ? 'Volunteer added successfully and credentials sent to email.' : 'Volunteer added successfully, but failed to send credentials email. Please share the password manually.',
             'data' => [
-                'user' => User::findById($user->id)
+                'user' => User::findById($user->id),
+                'email_sent' => $emailSent,
+                'generated_password' => $emailSent ? null : $password,
             ]
         ], 201);
     }

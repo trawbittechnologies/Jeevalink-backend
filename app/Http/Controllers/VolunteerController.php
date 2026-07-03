@@ -263,9 +263,11 @@ class VolunteerController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => $emailSent ? 'User added successfully and credentials sent to email.' : 'User added successfully, but failed to send credentials email.',
+            'message' => $emailSent ? 'User added successfully and credentials sent to email.' : 'User added successfully, but failed to send credentials email. Please share the password manually.',
             'data' => [
-                'user' => User::findById($user->id)
+                'user' => User::findById($user->id),
+                'email_sent' => $emailSent,
+                'generated_password' => $emailSent ? null : $password,
             ]
         ], 201);
     }
