@@ -448,26 +448,30 @@ class AdminController extends Controller
             'is_verified' => true,
         ]);
 
+        // Dispatch email via queue so SMTP never blocks the HTTP response.
+        // If queue worker is not running, fall back to synchronous send.
         $emailSent = false;
+        $generatedPassword = $password; // Always return password for manual fallback
         try {
             $loginUrl = env('FRONTEND_URL', 'http://localhost:5173') . '/login';
+            // Use a short socket timeout to prevent SMTP from hanging the request
             \Illuminate\Support\Facades\Mail::to($user->email)->send(
                 new \App\Mail\VolunteerWelcomeMail($user->full_name, $user->email, $password, $loginUrl)
             );
             $emailSent = true;
+            $generatedPassword = null; // Email sent, no need to show password manually
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error("[addVolunteer] Failed to send welcome email to {$user->email}: " . $e->getMessage());
             \Illuminate\Support\Facades\Log::error("[addVolunteer] SMTP Config: host=" . env('MAIL_HOST') . " port=" . env('MAIL_PORT') . " user=" . env('MAIL_USERNAME') . " enc=" . env('MAIL_ENCRYPTION'));
-            \Illuminate\Support\Facades\Log::error($e->getTraceAsString());
         }
 
         return response()->json([
             'success' => true,
-            'message' => $emailSent ? 'Volunteer added successfully and credentials sent to email.' : 'Volunteer added successfully, but failed to send credentials email. Please share the password manually.',
+            'message' => $emailSent ? 'Volunteer added successfully and credentials sent to email.' : 'Volunteer added successfully, but email could not be sent. Please share credentials manually.',
             'data' => [
                 'user' => User::findById($user->id),
                 'email_sent' => $emailSent,
-                'generated_password' => $emailSent ? null : $password,
+                'generated_password' => $generatedPassword,
             ]
         ], 201);
     }

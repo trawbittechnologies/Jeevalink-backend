@@ -44,13 +44,16 @@ return [
             'encryption' => env('MAIL_ENCRYPTION', 'tls'),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
-            'timeout' => 30,
+            'timeout' => 5, // Fail fast – don't block the HTTP response for 30s
             'local_domain' => env('MAIL_EHLO_DOMAIN'),
             'stream' => [
                 'ssl' => [
                     'allow_self_signed' => true,
                     'verify_peer'       => false,
                     'verify_peer_name'  => false,
+                ],
+                'socket' => [
+                    'bindto' => '0:0',
                 ],
             ],
         ],
