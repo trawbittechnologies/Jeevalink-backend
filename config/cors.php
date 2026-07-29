@@ -25,8 +25,9 @@ return [
         'http://localhost:5173',
         'http://127.0.0.1:5173',
         'http://localhost:3000',
-        // Add your Vercel production URL below (e.g. https://jeevalink.vercel.app)
-        env('FRONTEND_URL', 'https://jeevalink.vercel.app'),
+        'https://jeevalink-frontend.vercel.app',
+        'https://jeevalink.vercel.app',
+        env('FRONTEND_URL', 'https://jeevalink-frontend.vercel.app'),
     ],
 
     'allowed_origins_patterns' => [
