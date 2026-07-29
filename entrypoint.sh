@@ -23,8 +23,10 @@ mkdir -p /var/www/html/storage/framework/cache/data \
          /var/www/html/bootstrap/cache
 
 echo "--- Clearing Configuration & Route Caches ---"
+php artisan optimize:clear || true
 php artisan config:clear || true
 php artisan route:clear || true
+php artisan cache:clear || true
 
 echo "--- Running migrations ---"
 php artisan migrate --force || true
