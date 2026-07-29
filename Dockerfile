@@ -54,9 +54,9 @@ RUN mkdir -p storage/framework/cache/data \
 RUN chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-# Fallback ENV defaults — Railway service variables override these at runtime
-ENV APP_NAME=Jeevalink \
-    APP_URL=http://localhost \
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/public \
+    APP_NAME=Jeevalink \
+    APP_URL=https://jeevalink-backend-production.up.railway.app \
     LOG_CHANNEL=stderr \
     LOG_LEVEL=error \
     SESSION_DRIVER=file \

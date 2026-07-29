@@ -11,6 +11,7 @@ use App\Http\Controllers\SupportTicketController;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\PartnerController;
 use App\Http\Controllers\VolunteerController;
+use App\Http\Controllers\TechnicalAdminController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -134,6 +135,16 @@ Route::prefix('v1')->group(function () {
             Route::post('/admin/partners', [PartnerController::class, 'store']);
             Route::post('/admin/partners/{id}', [PartnerController::class, 'update']);
             Route::delete('/admin/partners/{id}', [PartnerController::class, 'destroy']);
+        });
+
+        // ─── Technical Admin Routes ──────────────────────────────────────────
+        Route::middleware('jwt.role:technical_admin,admin,super_admin')->group(function () {
+            Route::get('/technical-admin/metrics', [TechnicalAdminController::class, 'metrics']);
+            Route::get('/technical-admin/super-admins', [TechnicalAdminController::class, 'getSuperAdmins']);
+            Route::post('/technical-admin/super-admins', [TechnicalAdminController::class, 'createSuperAdmin']);
+            Route::put('/technical-admin/super-admins/{id}', [TechnicalAdminController::class, 'updateSuperAdmin']);
+            Route::delete('/technical-admin/super-admins/{id}', [TechnicalAdminController::class, 'deleteSuperAdmin']);
+            Route::post('/technical-admin/super-admins/{id}/message', [TechnicalAdminController::class, 'sendMessageToSuperAdmin']);
         });
     });
 });
