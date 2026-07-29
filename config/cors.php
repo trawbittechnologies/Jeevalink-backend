@@ -15,12 +15,10 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    'paths' => ['*'],
 
     'allowed_methods' => ['*'],
 
-    // NOTE: '*' cannot be used here when supports_credentials is true.
-    // List your Vercel frontend URL and any preview/localhost URLs.
     'allowed_origins' => [
         'http://localhost:5173',
         'http://127.0.0.1:5173',
@@ -31,8 +29,8 @@ return [
     ],
 
     'allowed_origins_patterns' => [
-        // Allow all Vercel preview deployments
-        '#^https://jeevalink.*\.vercel\.app$#',
+        '#^https://.*\.vercel\.app$#',
+        '#^https://.*\.railway\.app$#',
     ],
 
     'allowed_headers' => ['*'],

@@ -24,6 +24,9 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // ── CORS must be first — handles OPTIONS preflight before anything else ──
+        $middleware->prepend(\Illuminate\Http\Middleware\HandleCors::class);
+
         // Trust all proxies — required for Railway's reverse proxy
         $middleware->trustProxies(at: '*');
 
