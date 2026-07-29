@@ -85,7 +85,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/support/tickets', [SupportTicketController::class, 'store']);
 
         // ─── Admin/Volunteer Shared Routes ──────────────────────────────────
-        Route::middleware('jwt.role:admin,volunteer')->group(function () {
+        Route::middleware('jwt.role:admin,volunteer,technical_admin,super_admin')->group(function () {
             Route::patch('/requests/{id}/verify', [RequestController::class, 'verify']);
             Route::get('/admin/users', [AdminController::class, 'getUsers']);
             Route::post('/admin/volunteers', [AdminController::class, 'addVolunteer']); // Generic user add
@@ -98,7 +98,7 @@ Route::prefix('v1')->group(function () {
         });
 
         // ─── Admin Only Routes ──────────────────────────────────────────────
-        Route::middleware('jwt.role:admin')->group(function () {
+        Route::middleware('jwt.role:admin,technical_admin,super_admin')->group(function () {
 
             // Existing Admin Routes
             Route::get('/admin/complaints', [AdminController::class, 'getComplaints']);
