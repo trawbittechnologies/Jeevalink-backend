@@ -22,6 +22,10 @@ mkdir -p /var/www/html/storage/framework/cache/data \
          /var/www/html/storage/logs \
          /var/www/html/bootstrap/cache
 
+echo "--- Clearing Configuration & Route Caches ---"
+php artisan config:clear || true
+php artisan route:clear || true
+
 echo "--- Running migrations ---"
 php artisan migrate --force || true
 
