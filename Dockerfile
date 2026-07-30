@@ -65,12 +65,7 @@ ENV APACHE_DOCUMENT_ROOT=/var/www/html/public \
     SESSION_DRIVER=database \
     CACHE_STORE=database \
     QUEUE_CONNECTION=database \
-    MAIL_MAILER=smtp \
-    MAIL_HOST=smtp.gmail.com \
-    MAIL_PORT=587 \
-    MAIL_USERNAME=trawbittechnologies@gmail.com \
-    MAIL_PASSWORD=urktbdjuzerogfiw \
-    MAIL_ENCRYPTION=tls \
+    MAIL_MAILER=resend \
     MAIL_FROM_ADDRESS="trawbittechnologies@gmail.com" \
     MAIL_FROM_NAME="JeevaLink"
 
