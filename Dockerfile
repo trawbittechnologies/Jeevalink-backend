@@ -71,7 +71,7 @@ ENV APACHE_DOCUMENT_ROOT=/var/www/html/public \
     MAIL_USERNAME=trawbittechnologies@gmail.com \
     MAIL_PASSWORD=urktbdjuzerogfiw \
     MAIL_ENCRYPTION=tls \
-    MAIL_FROM_ADDRESS=trawbittechnologies@gmail.com \
+    MAIL_FROM_ADDRESS="trawbittechnologies@gmail.com" \
     MAIL_FROM_NAME="JeevaLink"
 
 COPY entrypoint.sh /entrypoint.sh

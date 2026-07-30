@@ -44,7 +44,7 @@ return [
             'encryption' => env('MAIL_ENCRYPTION', 'tls'),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
-            'timeout' => 5, // Fail fast – don't block the HTTP response for 30s
+            'timeout' => null, // default is null (wait indefinitely or up to php timeout)
             'local_domain' => env('MAIL_EHLO_DOMAIN'),
             'stream' => [
                 'ssl' => [
@@ -106,8 +106,8 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-        'name' => env('MAIL_FROM_NAME', 'Example'),
+        'address' => env('MAIL_FROM_ADDRESS') !== 'trawbittechnologies@gmail.com' ? env('MAIL_FROM_ADDRESS', 'hello@example.com') : (env('MAIL_USERNAME') ?: env('MAIL_FROM_ADDRESS', 'hello@example.com')),
+        'name' => env('MAIL_FROM_NAME', 'JeevaLink'),
     ],
 
 ];
