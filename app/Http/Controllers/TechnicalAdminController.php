@@ -146,12 +146,12 @@ class TechnicalAdminController extends Controller
             'full_name' => $request->full_name,
             'email' => $request->email,
             'mobile' => $request->mobile,
-            'secondary_phone' => $request->secondaryContactNumber ?? null,
             'district' => $request->district,
+            'city' => $request->city ?? $request->district ?? 'N/A',
             'role' => 'super_admin',
             'status' => 'Active',
+            'is_verified' => true,
             'password_hash' => $passwordHash,
-            'password' => $passwordHash,
         ]);
 
         // Attempt sending credential email
@@ -219,7 +219,6 @@ class TechnicalAdminController extends Controller
         }
         if ($request->has('email')) $superAdmin->email = $request->email;
         if ($request->has('mobile')) $superAdmin->mobile = $request->mobile;
-        if ($request->has('secondaryContactNumber')) $superAdmin->secondary_phone = $request->secondaryContactNumber;
         if ($request->has('status')) $superAdmin->status = $request->status;
 
         $superAdmin->save();

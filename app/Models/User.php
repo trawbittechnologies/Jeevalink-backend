@@ -19,7 +19,6 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
-        'password',
         'full_name',
         'email',
         'mobile',
@@ -54,19 +53,21 @@ class User extends Authenticatable
     ];
 
     /**
-     * Auto-populate the base `name` column from `full_name` on SQLite
-     * (the initial Laravel migration requires name NOT NULL).
+     * Auto-populate the base `name` and `city` columns if missing.
      */
     protected static function boot(): void
     {
         parent::boot();
 
         static::creating(function (self $user) {
+            if (empty($user->name)) {
+                $user->name = $user->full_name ?? 'User';
+            }
+            if (empty($user->city)) {
+                $user->city = $user->district ?? 'N/A';
+            }
             $isSqlite = \Illuminate\Support\Facades\DB::connection()->getDriverName() === 'sqlite';
             if ($isSqlite) {
-                if (empty($user->name)) {
-                    $user->name = $user->full_name ?? 'User';
-                }
                 if (empty($user->password) && !empty($user->password_hash)) {
                     $user->password = $user->password_hash;
                 }
