@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use App\Mail\SuperAdminMail;
 
 class TechnicalAdminController extends Controller
 {
@@ -181,29 +182,12 @@ class TechnicalAdminController extends Controller
         $mailSent  = false;
         $mailError = null;
         try {
-            Mail::raw(
-                "Hello {$request->full_name},\n\n"
-                . "Your District Super Admin account for {$request->district} District has been created successfully.\n\n"
-                . "Login Credentials:\n"
-                . "URL: https://jeevalink-frontend.vercel.app/login\n"
-                . "Email: {$request->email}\n"
-                . "Password: {$generatedPassword}\n\n"
-                . "Please change your password upon logging in.\n\n"
-                . "Regards,\nJeevaLink Technical Team",
-                function ($message) use ($request) {
-                    $message->to($request->email)
-                            ->subject('JeevaLink - Super Admin Account Created');
-                }
-            );
+            Mail::to($superAdmin->email)->send(new SuperAdminMail($superAdmin, $generatedPassword));
             \Illuminate\Support\Facades\Log::info('Mail sent successfully');
             $mailSent = true;
         } catch (\Throwable $e) {
             $mailError = $e->getMessage();
             \Illuminate\Support\Facades\Log::error('Mail failed: ' . $e->getMessage());
-            \Illuminate\Support\Facades\Log::error('Super Admin mail failed details', [
-                'to'    => $request->email,
-                'error' => $mailError,
-            ]);
         }
 
         return response()->json([
