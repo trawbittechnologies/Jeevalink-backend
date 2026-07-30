@@ -18,7 +18,7 @@ class UnitSquadController extends Controller
         $user = $request->user() ?? auth()->user();
         $city = $user ? $user->city : null;
 
-        $usersQuery = User::whereIn('role', ['user', 'donor']);
+        $usersQuery = User::where('role', 'user');
         if ($city) $usersQuery->where('city', $city);
         $totalUsers = $usersQuery->count();
 
@@ -41,7 +41,7 @@ class UnitSquadController extends Controller
         $user = $request->user() ?? auth()->user();
         $city = $user ? $user->city : null;
 
-        $users = User::whereIn('role', ['user', 'donor'])
+        $users = User::where('role', 'user')
             ->when($city, function($q) use ($city) {
                 return $q->where('city', $city);
             })
@@ -112,7 +112,7 @@ class UnitSquadController extends Controller
      */
     public function updateUser(Request $request, $id)
     {
-        $user = User::whereIn('role', ['user', 'donor'])->find($id);
+        $user = User::where('role', 'user')->find($id);
 
         if (!$user) {
             return response()->json([
@@ -162,7 +162,7 @@ class UnitSquadController extends Controller
      */
     public function deleteUser(Request $request, $id)
     {
-        $user = User::whereIn('role', ['user', 'donor'])->find($id);
+        $user = User::where('role', 'user')->find($id);
 
         if (!$user) {
             return response()->json([

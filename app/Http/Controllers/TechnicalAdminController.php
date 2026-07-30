@@ -26,9 +26,9 @@ class TechnicalAdminController extends Controller
      */
     public function metrics(Request $request)
     {
-        $totalUsers = User::whereIn('role', ['user', 'donor'])->count();
+        $totalUsers = User::where('role', 'user')->count();
         $totalVolunteers = User::where('role', 'volunteer')->count();
-        $totalAdmins = User::where('role', 'admin')->count();
+        $totalAdmins = User::where('role', 'block_admin')->count();
         $totalSuperAdmins = User::where('role', 'super_admin')->count();
         $totalRequests = BloodRequest::count();
         $pendingTechReports = SupportTicket::where('status', 'open')->count();

@@ -39,8 +39,8 @@ Route::prefix('v1')->group(function () {
         Route::patch('/auth/toggle-availability', [AuthController::class, 'toggleAvailability']);
         Route::post('/auth/push-token', [AuthController::class, 'pushToken']);
 
-        // ── Technical Admin Endpoints ─────────────────────────────────────
-        Route::middleware('jwt.role:technical_admin,admin')->group(function () {
+        // ── Technical Admin Endpoints (Level 1) ───────────────────────────
+        Route::middleware('jwt.role:technical_admin')->group(function () {
             Route::get('/technical-admin/dashboard', [TechnicalAdminController::class, 'dashboard']);
             Route::get('/technical-admin/metrics', [TechnicalAdminController::class, 'metrics']);
             Route::get('/technical-admin/super-admins', [TechnicalAdminController::class, 'getSuperAdmins']);
@@ -51,8 +51,8 @@ Route::prefix('v1')->group(function () {
             Route::post('/technical-admin/broadcast', [AdminController::class, 'broadcastNotification']);
         });
 
-        // ── Super Admin Endpoints ──────────────────────────────────────────
-        Route::middleware('jwt.role:super_admin,technical_admin,admin')->group(function () {
+        // ── Super Admin Endpoints (Level 2) ────────────────────────────────
+        Route::middleware('jwt.role:super_admin')->group(function () {
             Route::get('/super-admin/dashboard', [SuperAdminController::class, 'dashboard']);
             Route::get('/super-admin/metrics', [SuperAdminController::class, 'metrics']);
             Route::get('/super-admin/block-admins', [SuperAdminController::class, 'getBlockAdmins']);
@@ -61,8 +61,8 @@ Route::prefix('v1')->group(function () {
             Route::delete('/super-admin/block-admins/{id}', [SuperAdminController::class, 'deleteBlockAdmin']);
         });
 
-        // ── Block Admin Endpoints ──────────────────────────────────────────
-        Route::middleware('jwt.role:block_admin,admin,super_admin,technical_admin')->group(function () {
+        // ── Block Admin Endpoints (Level 3) ────────────────────────────────
+        Route::middleware('jwt.role:block_admin')->group(function () {
             Route::get('/block-admin/dashboard', [BlockAdminController::class, 'dashboard']);
             Route::get('/block-admin/metrics', [BlockAdminController::class, 'metrics']);
             Route::get('/block-admin/volunteers', [BlockAdminController::class, 'getVolunteers']);
@@ -72,8 +72,8 @@ Route::prefix('v1')->group(function () {
             Route::get('/block-admin/users', [BlockAdminController::class, 'getUsers']);
         });
 
-        // ── Volunteer Endpoints ───────────────────────────────────────────
-        Route::middleware('jwt.role:volunteer,block_admin,admin,super_admin,technical_admin')->group(function () {
+        // ── Volunteer Endpoints (Level 4) ─────────────────────────────────
+        Route::middleware('jwt.role:volunteer')->group(function () {
             Route::get('/volunteer/dashboard', [VolunteerController::class, 'dashboard']);
             Route::get('/volunteer/unit-squads', [VolunteerController::class, 'getUnitSquads']);
             Route::post('/volunteer/unit-squads', [VolunteerController::class, 'createUnitSquad']);
@@ -87,8 +87,8 @@ Route::prefix('v1')->group(function () {
             Route::patch('/volunteer/users/{id}', [VolunteerController::class, 'updateUser']);
         });
 
-        // ── Unit Squad Endpoints ──────────────────────────────────────────
-        Route::middleware('jwt.role:unit_squad,volunteer,block_admin,admin,super_admin,technical_admin')->group(function () {
+        // ── Unit Squad Endpoints (Level 5) ────────────────────────────────
+        Route::middleware('jwt.role:unit_squad')->group(function () {
             Route::get('/unit-squad/dashboard', [UnitSquadController::class, 'dashboard']);
             Route::get('/unit-squad/users', [UnitSquadController::class, 'getUsers']);
             Route::post('/unit-squad/users', [UnitSquadController::class, 'createUser']);
@@ -96,8 +96,8 @@ Route::prefix('v1')->group(function () {
             Route::delete('/unit-squad/users/{id}', [UnitSquadController::class, 'deleteUser']);
         });
 
-        // ── User Specific Endpoints ────────────────────────────────────────
-        Route::middleware('jwt.role:user,donor,unit_squad,volunteer,block_admin,admin,super_admin,technical_admin')->group(function () {
+        // ── User Specific Endpoints (Level 6) ──────────────────────────────
+        Route::middleware('jwt.role:user')->group(function () {
             Route::get('/user/profile', [UserController::class, 'getProfile']);
             Route::put('/user/profile', [UserController::class, 'updateProfile']);
             Route::post('/user/blood-requests', [UserController::class, 'createBloodRequest']);
@@ -134,8 +134,8 @@ Route::prefix('v1')->group(function () {
         Route::post('/feedback', [FeedbackController::class, 'store']);
         Route::post('/support/tickets', [SupportTicketController::class, 'store']);
 
-        // Legacy Admin Group Compatibility
-        Route::middleware('jwt.role:admin,block_admin,super_admin,technical_admin')->group(function () {
+        // Management Endpoints (Accessible by Block Admin level and higher)
+        Route::middleware('jwt.role:block_admin')->group(function () {
             Route::get('/admin/users', [AdminController::class, 'getUsers']);
             Route::post('/admin/volunteers', [AdminController::class, 'addVolunteer']);
             Route::get('/admin/complaints', [AdminController::class, 'getComplaints']);

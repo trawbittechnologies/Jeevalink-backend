@@ -36,7 +36,7 @@ class SuperAdminController extends Controller
             $requestQuery->where('district', $district);
         }
 
-        $totalBlockAdmins = User::whereIn('role', ['block_admin', 'admin'])
+        $totalBlockAdmins = User::where('role', 'block_admin')
             ->when($district, function($q) use ($district) {
                 return $q->where('district', $district);
             })->count();
@@ -46,7 +46,7 @@ class SuperAdminController extends Controller
                 return $q->where('district', $district);
             })->count();
 
-        $totalUsers = (clone $userQuery)->whereIn('role', ['user', 'donor'])->count();
+        $totalUsers = (clone $userQuery)->where('role', 'user')->count();
         $totalRequests = $requestQuery->count();
         $fulfilledRequests = (clone $requestQuery)->where('status', 'fulfilled')->count();
 
@@ -72,7 +72,7 @@ class SuperAdminController extends Controller
         $user = $request->user() ?? auth()->user();
         $district = $user ? $user->district : null;
 
-        $blockAdmins = User::whereIn('role', ['block_admin', 'admin'])
+        $blockAdmins = User::where('role', 'block_admin')
             ->when($district, function($q) use ($district) {
                 return $q->where('district', $district);
             })
@@ -159,7 +159,7 @@ class SuperAdminController extends Controller
      */
     public function updateBlockAdmin(Request $request, $id)
     {
-        $blockAdmin = User::whereIn('role', ['block_admin', 'admin'])->find($id);
+        $blockAdmin = User::where('role', 'block_admin')->find($id);
 
         if (!$blockAdmin) {
             return response()->json([
@@ -209,7 +209,7 @@ class SuperAdminController extends Controller
      */
     public function deleteBlockAdmin(Request $request, $id)
     {
-        $blockAdmin = User::whereIn('role', ['block_admin', 'admin'])->find($id);
+        $blockAdmin = User::where('role', 'block_admin')->find($id);
 
         if (!$blockAdmin) {
             return response()->json([

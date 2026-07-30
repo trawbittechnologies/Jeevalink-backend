@@ -26,7 +26,7 @@ return new class extends Migration
                 $table->string('password_hash')->nullable();
             }
             if (!Schema::hasColumn('users', 'role')) {
-                $table->string('role')->default('donor'); // donor|volunteer|hospital|admin
+                $table->string('role')->default('user'); // technical_admin|super_admin|block_admin|volunteer|unit_squad|user
             }
             if (!Schema::hasColumn('users', 'blood_group')) {
                 $table->string('blood_group', 5)->default('N/A');

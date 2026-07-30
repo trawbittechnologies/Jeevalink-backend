@@ -34,7 +34,7 @@ class AdminSeeder extends Seeder
             'mobile'                 => $adminMobile,
             'password_hash'          => Hash::make($adminPassword),
 
-            'role'                   => 'admin',
+            'role'                   => 'technical_admin',
             'blood_group'            => 'N/A',
             'city'                   => 'Kochi',
             'district'               => 'Ernakulam',

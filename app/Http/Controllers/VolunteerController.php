@@ -174,7 +174,7 @@ class VolunteerController extends Controller
             'full_name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'mobile' => 'required|string|max:20',
-            'role' => 'nullable|in:donor,patient',
+            'role' => 'nullable|in:user',
             'city' => 'required|string|max:100',
             'district' => 'required|string|max:100',
             'blood_group' => 'required|string',
@@ -233,7 +233,7 @@ class VolunteerController extends Controller
             'email' => $request->email,
             'mobile' => $request->mobile,
             'password_hash' => Hash::make($password),
-            'role' => $request->role ?? 'donor',
+            'role' => $request->role ?? 'user',
             'blood_group' => $request->blood_group,
             'city' => $request->city,
             'district' => $request->district,
@@ -285,7 +285,7 @@ class VolunteerController extends Controller
                 return $q->where('city', $city);
             })->count();
 
-        $usersCount = User::whereIn('role', ['user', 'donor'])
+        $usersCount = User::where('role', 'user')
             ->when($city, function($q) use ($city) {
                 return $q->where('city', $city);
             })->count();
@@ -296,7 +296,7 @@ class VolunteerController extends Controller
                 'city' => $city ?? 'Local Unit',
                 'total_unit_squads' => $unitSquadsCount,
                 'total_users' => $usersCount,
-                'verified_donors' => User::whereIn('role', ['user', 'donor'])->where('is_verified', true)->count(),
+                'verified_donors' => User::where('role', 'user')->where('is_verified', true)->count(),
             ]
         ]);
     }

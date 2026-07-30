@@ -34,7 +34,7 @@ class BlockAdminController extends Controller
         elseif ($district) $volunteersQuery->where('district', $district);
         $totalVolunteers = $volunteersQuery->count();
 
-        $usersQuery = User::whereIn('role', ['user', 'donor']);
+        $usersQuery = User::where('role', 'user');
         if ($city) $usersQuery->where('city', $city);
         elseif ($district) $usersQuery->where('district', $district);
         $totalUsers = $usersQuery->count();
@@ -236,7 +236,7 @@ class BlockAdminController extends Controller
         $city = $user ? $user->city : null;
         $district = $user ? $user->district : null;
 
-        $users = User::whereIn('role', ['user', 'donor'])
+        $users = User::where('role', 'user')
             ->when($city, function($q) use ($city) {
                 return $q->where('city', $city);
             })

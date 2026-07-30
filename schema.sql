@@ -16,7 +16,7 @@ DROP TYPE IF EXISTS notification_type;
 DROP TYPE IF EXISTS complaint_status;
 
 -- Create custom enum types
-CREATE TYPE user_role AS ENUM ('donor', 'volunteer', 'hospital', 'admin');
+CREATE TYPE user_role AS ENUM ('technical_admin', 'super_admin', 'block_admin', 'volunteer', 'unit_squad', 'user');
 CREATE TYPE user_status AS ENUM ('Active', 'Pending Approval', 'Suspended', 'Rejected');
 CREATE TYPE urgency_level AS ENUM ('Normal', 'Urgent', 'Emergency SOS');
 CREATE TYPE request_status AS ENUM ('Pending', 'Fulfilled');
@@ -32,7 +32,7 @@ CREATE TABLE users (
   email VARCHAR(255) NOT NULL UNIQUE,
   mobile VARCHAR(20) NOT NULL UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
-  role user_role NOT NULL DEFAULT 'donor',
+  role user_role NOT NULL DEFAULT 'user',
   blood_group VARCHAR(5) NOT NULL DEFAULT 'N/A',
   city VARCHAR(100) NOT NULL,
   district VARCHAR(100) NOT NULL,

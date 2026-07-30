@@ -10,6 +10,18 @@ use Illuminate\Support\Facades\Auth;
 class JwtRoleMiddleware
 {
     /**
+     * Role hierarchy levels (lower number = higher authority).
+     */
+    protected const ROLE_HIERARCHY = [
+        'technical_admin' => 1,
+        'super_admin'     => 2,
+        'block_admin'     => 3,
+        'volunteer'       => 4,
+        'unit_squad'      => 5,
+        'user'            => 6,
+    ];
+
+    /**
      * Handle an incoming request with role checking.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -29,30 +41,21 @@ class JwtRoleMiddleware
         }
 
         $userRole = strtolower(trim($user->role));
+        $userLevel = self::ROLE_HIERARCHY[$userRole] ?? 6;
 
-        // Map allowed role aliases
         $hasAccess = false;
         foreach ($roles as $role) {
             $r = strtolower(trim($role));
+            
+            // Direct exact role match
             if ($userRole === $r) {
                 $hasAccess = true;
                 break;
             }
 
-            // Role Aliases / Equivalents
-            if ($r === 'technical_admin' && in_array($userRole, ['technical_admin', 'admin'], true)) {
-                $hasAccess = true;
-                break;
-            }
-            if ($r === 'block_admin' && in_array($userRole, ['block_admin', 'admin'], true)) {
-                $hasAccess = true;
-                break;
-            }
-            if ($r === 'user' && in_array($userRole, ['user', 'donor', 'patient'], true)) {
-                $hasAccess = true;
-                break;
-            }
-            if ($r === 'donor' && in_array($userRole, ['user', 'donor'], true)) {
+            // Hierarchy level check (higher level roles can access lower level endpoints)
+            $requiredLevel = self::ROLE_HIERARCHY[$r] ?? null;
+            if ($requiredLevel !== null && $userLevel <= $requiredLevel) {
                 $hasAccess = true;
                 break;
             }

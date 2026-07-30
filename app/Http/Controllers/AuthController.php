@@ -21,7 +21,7 @@ class AuthController extends Controller
             'email' => 'required|email|max:255',
             'mobile' => 'required|string|max:20',
             'password' => 'required|string|min:6',
-            'role' => 'required|in:donor,volunteer,hospital',
+            'role' => 'nullable|in:user,volunteer,unit_squad,block_admin,super_admin,technical_admin',
             'city' => 'nullable|string|max:100',
             'district' => 'nullable|string|max:100',
             'blood_group' => 'nullable|in:A+,A-,B+,B-,AB+,AB-,O+,O-,N/A',
@@ -31,7 +31,7 @@ class AuthController extends Controller
             'id_proof_front' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
             'id_proof_back' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
             'sex' => 'nullable|in:male,female,transgender',
-            'profile_picture' => 'required_if:role,donor|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -60,8 +60,9 @@ class AuthController extends Controller
             ], 409);
         }
 
-        // Set status
-        $status = ($request->role === 'hospital') ? 'Pending Approval' : 'Active';
+        // Set status and default role
+        $role = $request->role ?? 'user';
+        $status = 'Active';
         $available = $request->has('available_for_donation') ? (bool)$request->available_for_donation : true;
 
         $idProofFrontPath = null;
@@ -84,7 +85,7 @@ class AuthController extends Controller
             'email' => $request->email,
             'mobile' => $request->mobile,
             'password_hash' => Hash::make($request->password),
-            'role' => $request->role,
+            'role' => $role,
             'blood_group' => $request->blood_group ?? 'N/A',
             'city' => $request->city ?? '',
             'district' => $request->district ?? '',
@@ -114,7 +115,7 @@ class AuthController extends Controller
                 'token' => $token,
                 'user' => $userData
             ]
-        ], 210);
+        ], 201);
     }
 
     /**
