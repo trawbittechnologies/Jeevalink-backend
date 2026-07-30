@@ -89,6 +89,13 @@ class BlockAdminController extends Controller
                 'district' => $v->district ?? 'N/A',
                 'status' => $v->status ?? 'Active',
                 'is_verified' => (bool)$v->is_verified,
+                'secondaryContactName' => $v->secondary_contact_name ?? '',
+                'secondary_contact_name' => $v->secondary_contact_name ?? '',
+                'secondaryContactNumber' => $v->secondary_phone ?? '',
+                'secondary_contact_number' => $v->secondary_phone ?? '',
+                'secondary_phone' => $v->secondary_phone ?? '',
+                'whatsapp_number' => $v->whatsapp_number ?? '',
+                'meghala' => $v->city ?? 'N/A',
                 'created_at' => $v->created_at ? $v->created_at->toIso8601String() : null
             ];
         });
@@ -127,6 +134,9 @@ class BlockAdminController extends Controller
             'full_name' => $request->full_name,
             'email' => $request->email,
             'mobile' => $request->mobile,
+            'secondary_contact_name' => $request->secondaryContactName ?? $request->secondary_contact_name ?? $request->person2Name ?? null,
+            'secondary_phone' => $request->secondaryContactNumber ?? $request->secondary_contact_number ?? $request->secondary_phone ?? $request->person2Contact ?? null,
+            'whatsapp_number' => $request->whatsapp_number ?? $request->whatsapp ?? null,
             'password_hash' => Hash::make($password),
             'role' => 'volunteer',
             'blood_group' => 'N/A',
@@ -194,6 +204,13 @@ class BlockAdminController extends Controller
         if ($request->has('mobile')) $volunteer->mobile = $request->mobile;
         if ($request->has('city')) $volunteer->city = $request->city;
         if ($request->has('district')) $volunteer->district = $request->district;
+        if ($request->has('secondaryContactName') || $request->has('secondary_contact_name') || $request->has('person2Name')) {
+            $volunteer->secondary_contact_name = $request->secondaryContactName ?? $request->secondary_contact_name ?? $request->person2Name;
+        }
+        if ($request->has('secondaryContactNumber') || $request->has('secondary_contact_number') || $request->has('secondary_phone') || $request->has('person2Contact')) {
+            $volunteer->secondary_phone = $request->secondaryContactNumber ?? $request->secondary_contact_number ?? $request->secondary_phone ?? $request->person2Contact;
+        }
+        if ($request->has('whatsapp_number')) $volunteer->whatsapp_number = $request->whatsapp_number;
         if ($request->has('status')) $volunteer->status = $request->status;
 
         $volunteer->save();

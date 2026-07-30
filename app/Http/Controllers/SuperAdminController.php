@@ -89,6 +89,12 @@ class SuperAdminController extends Controller
                 'city' => $ba->city ?? 'N/A',
                 'role' => $ba->role,
                 'status' => $ba->status ?? 'Active',
+                'secondaryContactName' => $ba->secondary_contact_name ?? '',
+                'secondary_contact_name' => $ba->secondary_contact_name ?? '',
+                'secondaryContactNumber' => $ba->secondary_phone ?? '',
+                'secondary_contact_number' => $ba->secondary_phone ?? '',
+                'secondary_phone' => $ba->secondary_phone ?? '',
+                'whatsapp_number' => $ba->whatsapp_number ?? '',
                 'created_at' => $ba->created_at ? $ba->created_at->toIso8601String() : null
             ];
         });
@@ -127,6 +133,9 @@ class SuperAdminController extends Controller
             'full_name' => $request->full_name,
             'email' => $request->email,
             'mobile' => $request->mobile,
+            'secondary_contact_name' => $request->secondaryContactName ?? $request->secondary_contact_name ?? null,
+            'secondary_phone' => $request->secondaryContactNumber ?? $request->secondary_contact_number ?? $request->secondary_phone ?? null,
+            'whatsapp_number' => $request->whatsapp_number ?? $request->whatsapp ?? null,
             'district' => $request->district,
             'city' => $request->city,
             'role' => 'block_admin',
@@ -193,6 +202,13 @@ class SuperAdminController extends Controller
         if ($request->has('mobile')) $blockAdmin->mobile = $request->mobile;
         if ($request->has('district')) $blockAdmin->district = $request->district;
         if ($request->has('city')) $blockAdmin->city = $request->city;
+        if ($request->has('secondaryContactName') || $request->has('secondary_contact_name')) {
+            $blockAdmin->secondary_contact_name = $request->secondaryContactName ?? $request->secondary_contact_name;
+        }
+        if ($request->has('secondaryContactNumber') || $request->has('secondary_contact_number') || $request->has('secondary_phone')) {
+            $blockAdmin->secondary_phone = $request->secondaryContactNumber ?? $request->secondary_contact_number ?? $request->secondary_phone;
+        }
+        if ($request->has('whatsapp_number')) $blockAdmin->whatsapp_number = $request->whatsapp_number;
         if ($request->has('status')) $blockAdmin->status = $request->status;
 
         $blockAdmin->save();

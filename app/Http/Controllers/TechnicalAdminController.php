@@ -141,10 +141,18 @@ class TechnicalAdminController extends Controller
         $generatedPassword = 'JL@' . Str::random(8);
         $passwordHash = Hash::make($generatedPassword);
 
+        $secName = $request->secondaryContactName ?? $request->secondary_contact_name ?? null;
+        $secPhone = $request->secondaryContactNumber ?? $request->secondary_contact_number ?? $request->secondary_phone ?? null;
+        $whatsapp = $request->whatsapp_number ?? $request->whatsapp ?? null;
+
         $superAdmin = User::create([
+            'name' => $request->full_name,
             'full_name' => $request->full_name,
             'email' => $request->email,
             'mobile' => $request->mobile,
+            'secondary_contact_name' => $secName,
+            'secondary_phone' => $secPhone,
+            'whatsapp_number' => $whatsapp,
             'district' => $request->district,
             'city' => $request->city ?? $request->district ?? 'N/A',
             'role' => 'super_admin',
@@ -217,6 +225,13 @@ class TechnicalAdminController extends Controller
         }
         if ($request->has('email')) $superAdmin->email = $request->email;
         if ($request->has('mobile')) $superAdmin->mobile = $request->mobile;
+        if ($request->has('secondaryContactName') || $request->has('secondary_contact_name')) {
+            $superAdmin->secondary_contact_name = $request->secondaryContactName ?? $request->secondary_contact_name;
+        }
+        if ($request->has('secondaryContactNumber') || $request->has('secondary_contact_number') || $request->has('secondary_phone')) {
+            $superAdmin->secondary_phone = $request->secondaryContactNumber ?? $request->secondary_contact_number ?? $request->secondary_phone;
+        }
+        if ($request->has('whatsapp_number')) $superAdmin->whatsapp_number = $request->whatsapp_number;
         if ($request->has('status')) $superAdmin->status = $request->status;
 
         $superAdmin->save();

@@ -325,6 +325,12 @@ class VolunteerController extends Controller
                 'city' => $us->city ?? 'N/A',
                 'district' => $us->district ?? 'N/A',
                 'status' => $us->status ?? 'Active',
+                'secondaryContactName' => $us->secondary_contact_name ?? '',
+                'secondary_contact_name' => $us->secondary_contact_name ?? '',
+                'secondaryContactNumber' => $us->secondary_phone ?? '',
+                'secondary_contact_number' => $us->secondary_phone ?? '',
+                'secondary_phone' => $us->secondary_phone ?? '',
+                'whatsapp_number' => $us->whatsapp_number ?? '',
                 'created_at' => $us->created_at ? $us->created_at->toIso8601String() : null
             ];
         });
@@ -363,6 +369,9 @@ class VolunteerController extends Controller
             'full_name' => $request->full_name,
             'email' => $request->email,
             'mobile' => $request->mobile,
+            'secondary_contact_name' => $request->secondaryContactName ?? $request->secondary_contact_name ?? null,
+            'secondary_phone' => $request->secondaryContactNumber ?? $request->secondary_contact_number ?? $request->secondary_phone ?? null,
+            'whatsapp_number' => $request->whatsapp_number ?? $request->whatsapp ?? null,
             'password_hash' => Hash::make($password),
             'role' => 'unit_squad',
             'blood_group' => 'N/A',
@@ -421,6 +430,13 @@ class VolunteerController extends Controller
         if ($request->has('mobile')) $unitSquad->mobile = $request->mobile;
         if ($request->has('city')) $unitSquad->city = $request->city;
         if ($request->has('district')) $unitSquad->district = $request->district;
+        if ($request->has('secondaryContactName') || $request->has('secondary_contact_name')) {
+            $unitSquad->secondary_contact_name = $request->secondaryContactName ?? $request->secondary_contact_name;
+        }
+        if ($request->has('secondaryContactNumber') || $request->has('secondary_contact_number') || $request->has('secondary_phone')) {
+            $unitSquad->secondary_phone = $request->secondaryContactNumber ?? $request->secondary_contact_number ?? $request->secondary_phone;
+        }
+        if ($request->has('whatsapp_number')) $unitSquad->whatsapp_number = $request->whatsapp_number;
         if ($request->has('status')) $unitSquad->status = $request->status;
 
         $unitSquad->save();

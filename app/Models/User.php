@@ -19,6 +19,8 @@ class User extends Authenticatable
      */
     protected $appends = [
         'name',
+        'secondaryContactName',
+        'secondaryContactNumber',
     ];
 
     /**
@@ -27,6 +29,7 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
+        'name',
         'full_name',
         'email',
         'mobile',
@@ -58,6 +61,14 @@ class User extends Authenticatable
         'eligibility_status',
         'eligibility_checked_at',
         'sex',
+        'secondary_contact_name',
+        'secondary_phone',
+        'whatsapp_number',
+        'organization_name',
+        'volunteer_type',
+        'pin_code',
+        'address',
+        'remarks',
     ];
 
     /**
@@ -68,13 +79,16 @@ class User extends Authenticatable
         parent::boot();
 
         static::creating(function (self $user) {
-            if (empty($user->city)) {
-                $user->city = $user->district ?? 'N/A';
+            if (empty($user->getAttribute('name'))) {
+                $user->setAttribute('name', $user->full_name ?? 'User');
+            }
+            if (empty($user->getAttribute('city'))) {
+                $user->setAttribute('city', $user->district ?? 'N/A');
             }
             $isSqlite = \Illuminate\Support\Facades\DB::connection()->getDriverName() === 'sqlite';
             if ($isSqlite) {
-                if (empty($user->password) && !empty($user->password_hash)) {
-                    $user->password = $user->password_hash;
+                if (empty($user->getAttribute('password')) && !empty($user->password_hash)) {
+                    $user->setAttribute('password', $user->password_hash);
                 }
             }
         });
@@ -86,6 +100,22 @@ class User extends Authenticatable
     public function getNameAttribute(): ?string
     {
         return $this->attributes['full_name'] ?? 'User';
+    }
+
+    /**
+     * Accessor for 'secondaryContactName' attribute.
+     */
+    public function getSecondaryContactNameAttribute(): ?string
+    {
+        return $this->attributes['secondary_contact_name'] ?? null;
+    }
+
+    /**
+     * Accessor for 'secondaryContactNumber' attribute.
+     */
+    public function getSecondaryContactNumberAttribute(): ?string
+    {
+        return $this->attributes['secondary_phone'] ?? null;
     }
 
     /**
