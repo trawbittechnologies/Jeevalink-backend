@@ -56,12 +56,15 @@ RUN chown -R www-data:www-data storage bootstrap/cache \
 
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public \
     APP_NAME=Jeevalink \
+    APP_ENV=production \
+    APP_DEBUG=false \
     APP_URL=https://jeevalink-backend-production.up.railway.app \
+    DB_CONNECTION=pgsql \
     LOG_CHANNEL=stderr \
     LOG_LEVEL=error \
-    SESSION_DRIVER=file \
-    CACHE_STORE=file \
-    QUEUE_CONNECTION=sync \
+    SESSION_DRIVER=database \
+    CACHE_STORE=database \
+    QUEUE_CONNECTION=database \
     MAIL_MAILER=smtp \
     MAIL_HOST=smtp.gmail.com \
     MAIL_PORT=587 \
