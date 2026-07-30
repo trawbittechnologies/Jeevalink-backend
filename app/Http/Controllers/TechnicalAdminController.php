@@ -195,10 +195,12 @@ class TechnicalAdminController extends Controller
                             ->subject('JeevaLink - Super Admin Account Created');
                 }
             );
+            \Illuminate\Support\Facades\Log::info('Mail sent successfully');
             $mailSent = true;
         } catch (\Throwable $e) {
             $mailError = $e->getMessage();
-            \Illuminate\Support\Facades\Log::error('Super Admin mail failed', [
+            \Illuminate\Support\Facades\Log::error('Mail failed: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Super Admin mail failed details', [
                 'to'    => $request->email,
                 'error' => $mailError,
             ]);
