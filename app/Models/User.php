@@ -13,12 +13,20 @@ class User extends Authenticatable
     protected $table = 'users';
 
     /**
+     * Appends dynamic/virtual attributes to model array & JSON representations.
+     *
+     * @var array<int, string>
+     */
+    protected $appends = [
+        'name',
+    ];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
         'full_name',
         'email',
         'mobile',
@@ -53,16 +61,13 @@ class User extends Authenticatable
     ];
 
     /**
-     * Auto-populate the base `name` and `city` columns if missing.
+     * Auto-populate default fields if missing during creation.
      */
     protected static function boot(): void
     {
         parent::boot();
 
         static::creating(function (self $user) {
-            if (empty($user->name)) {
-                $user->name = $user->full_name ?? 'User';
-            }
             if (empty($user->city)) {
                 $user->city = $user->district ?? 'N/A';
             }
@@ -73,15 +78,14 @@ class User extends Authenticatable
                 }
             }
         });
+    }
 
-        static::updating(function (self $user) {
-            $isSqlite = \Illuminate\Support\Facades\DB::connection()->getDriverName() === 'sqlite';
-            if ($isSqlite) {
-                if (empty($user->name) && !empty($user->full_name)) {
-                    $user->name = $user->full_name;
-                }
-            }
-        });
+    /**
+     * Accessor for virtual 'name' attribute (maps directly to full_name).
+     */
+    public function getNameAttribute(): ?string
+    {
+        return $this->attributes['full_name'] ?? 'User';
     }
 
     /**
