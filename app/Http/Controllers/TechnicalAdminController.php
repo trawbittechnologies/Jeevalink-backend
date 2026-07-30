@@ -158,10 +158,14 @@ class TechnicalAdminController extends Controller
             'password_hash' => $passwordHash,
         ];
 
-        // Conditionally add optional columns that may not exist on older DB schemas
-        if ($secName  !== null) $payload['secondary_contact_name'] = $secName;
-        if ($secPhone !== null) $payload['secondary_phone']         = $secPhone;
-        if ($whatsapp !== null) $payload['whatsapp_number']         = $whatsapp;
+        // Only add optional columns if they actually exist in the DB schema
+        $hasSecName  = \Illuminate\Support\Facades\Schema::hasColumn('users', 'secondary_contact_name');
+        $hasSecPhone = \Illuminate\Support\Facades\Schema::hasColumn('users', 'secondary_phone');
+        $hasWhatsapp = \Illuminate\Support\Facades\Schema::hasColumn('users', 'whatsapp_number');
+
+        if ($hasSecName  && $secName  !== null) $payload['secondary_contact_name'] = $secName;
+        if ($hasSecPhone && $secPhone !== null) $payload['secondary_phone']         = $secPhone;
+        if ($hasWhatsapp && $whatsapp !== null) $payload['whatsapp_number']         = $whatsapp;
 
         $superAdmin = User::create($payload);
 
