@@ -10,12 +10,24 @@ return new class extends Migration
     {
         // Add volunteer-specific fields to users table
         Schema::table('users', function (Blueprint $table) {
-            $table->string('organization_name')->nullable()->after('district');
-            $table->string('volunteer_type')->nullable()->after('organization_name');
-            $table->string('secondary_phone')->nullable()->after('mobile');
-            $table->string('pin_code', 10)->nullable()->after('city');
-            $table->text('address')->nullable()->after('pin_code');
-            $table->text('remarks')->nullable()->after('address');
+            if (!Schema::hasColumn('users', 'organization_name')) {
+                $table->string('organization_name')->nullable()->after('district');
+            }
+            if (!Schema::hasColumn('users', 'volunteer_type')) {
+                $table->string('volunteer_type')->nullable()->after('organization_name');
+            }
+            if (!Schema::hasColumn('users', 'secondary_phone')) {
+                $table->string('secondary_phone')->nullable()->after('mobile');
+            }
+            if (!Schema::hasColumn('users', 'pin_code')) {
+                $table->string('pin_code', 10)->nullable()->after('city');
+            }
+            if (!Schema::hasColumn('users', 'address')) {
+                $table->text('address')->nullable()->after('pin_code');
+            }
+            if (!Schema::hasColumn('users', 'remarks')) {
+                $table->text('remarks')->nullable()->after('address');
+            }
         });
     }
 
