@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Auth;
 class JwtRoleMiddleware
 {
     /**
-     * Handle an incoming request.
+     * Handle an incoming request with role checking.
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
@@ -28,17 +28,40 @@ class JwtRoleMiddleware
             ], 401);
         }
 
-        if (!in_array($user->role, $roles)) {
-            $msg = 'Access denied.';
-            if (in_array('admin', $roles) && in_array('volunteer', $roles)) {
-                $msg = 'Access denied. Administrator or Volunteer role required.';
-            } elseif (in_array('admin', $roles)) {
-                $msg = 'Access denied. Administrator privileges required.';
+        $userRole = strtolower(trim($user->role));
+
+        // Map allowed role aliases
+        $hasAccess = false;
+        foreach ($roles as $role) {
+            $r = strtolower(trim($role));
+            if ($userRole === $r) {
+                $hasAccess = true;
+                break;
             }
-            
+
+            // Role Aliases / Equivalents
+            if ($r === 'technical_admin' && in_array($userRole, ['technical_admin', 'admin'], true)) {
+                $hasAccess = true;
+                break;
+            }
+            if ($r === 'block_admin' && in_array($userRole, ['block_admin', 'admin'], true)) {
+                $hasAccess = true;
+                break;
+            }
+            if ($r === 'user' && in_array($userRole, ['user', 'donor', 'patient'], true)) {
+                $hasAccess = true;
+                break;
+            }
+            if ($r === 'donor' && in_array($userRole, ['user', 'donor'], true)) {
+                $hasAccess = true;
+                break;
+            }
+        }
+
+        if (!$hasAccess) {
             return response()->json([
                 'success' => false,
-                'message' => $msg,
+                'message' => 'Access denied. You do not have permission to perform this action.',
                 'errors' => []
             ], 403);
         }

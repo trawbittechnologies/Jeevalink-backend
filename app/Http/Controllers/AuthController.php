@@ -456,4 +456,87 @@ class AuthController extends Controller
             'message' => 'Password has been successfully reset.'
         ]);
     }
+
+    /**
+     * Handle user logout.
+     */
+    public function logout(Request $request)
+    {
+        return response()->json([
+            'success' => true,
+            'message' => 'Logged out successfully.'
+        ]);
+    }
+
+    /**
+     * Refresh JWT authentication token.
+     */
+    public function refresh(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Authentication required.',
+                'errors' => []
+            ], 401);
+        }
+
+        $newToken = JWT::generateToken($user->id, $user->role);
+        $profile = User::findById($user->id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Token refreshed successfully.',
+            'data' => [
+                'token' => $newToken,
+                'user' => $profile
+            ]
+        ]);
+    }
+
+    /**
+     * Change authenticated user password.
+     */
+    public function changePassword(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Authentication required.',
+                'errors' => []
+            ], 401);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:6',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        if (!Hash::check($request->current_password, $user->password_hash)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Current password is incorrect.',
+                'errors' => ['current_password' => ['Current password is incorrect.']]
+            ], 400);
+        }
+
+        $user->password_hash = Hash::make($request->new_password);
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password changed successfully.'
+        ]);
+    }
 }
+

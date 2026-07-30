@@ -271,4 +271,187 @@ class VolunteerController extends Controller
             ]
         ], 201);
     }
+
+    /**
+     * Get Volunteer dashboard metrics.
+     */
+    public function dashboard(Request $request)
+    {
+        $user = $request->user() ?? auth()->user();
+        $city = $user ? $user->city : null;
+
+        $unitSquadsCount = User::where('role', 'unit_squad')
+            ->when($city, function($q) use ($city) {
+                return $q->where('city', $city);
+            })->count();
+
+        $usersCount = User::whereIn('role', ['user', 'donor'])
+            ->when($city, function($q) use ($city) {
+                return $q->where('city', $city);
+            })->count();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'city' => $city ?? 'Local Unit',
+                'total_unit_squads' => $unitSquadsCount,
+                'total_users' => $usersCount,
+                'verified_donors' => User::whereIn('role', ['user', 'donor'])->where('is_verified', true)->count(),
+            ]
+        ]);
+    }
+
+    /**
+     * Get Unit Squad list under this volunteer.
+     */
+    public function getUnitSquads(Request $request)
+    {
+        $user = $request->user() ?? auth()->user();
+        $city = $user ? $user->city : null;
+
+        $unitSquads = User::where('role', 'unit_squad')
+            ->when($city, function($q) use ($city) {
+                return $q->where('city', $city);
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $formatted = $unitSquads->map(function ($us) {
+            return [
+                'id' => $us->id,
+                'full_name' => $us->full_name ?? $us->name,
+                'email' => $us->email,
+                'mobile' => $us->mobile ?? 'N/A',
+                'city' => $us->city ?? 'N/A',
+                'district' => $us->district ?? 'N/A',
+                'status' => $us->status ?? 'Active',
+                'created_at' => $us->created_at ? $us->created_at->toIso8601String() : null
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $formatted
+        ]);
+    }
+
+    /**
+     * Create a Unit Squad user.
+     */
+    public function createUnitSquad(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'full_name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'mobile' => 'required|string|unique:users,mobile',
+            'city' => 'required|string|max:100',
+            'district' => 'required|string|max:100',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $password = Str::random(10);
+
+        $unitSquad = User::create([
+            'name' => $request->full_name,
+            'full_name' => $request->full_name,
+            'email' => $request->email,
+            'mobile' => $request->mobile,
+            'password_hash' => Hash::make($password),
+            'role' => 'unit_squad',
+            'blood_group' => 'N/A',
+            'city' => $request->city,
+            'district' => $request->district,
+            'status' => 'Active',
+            'is_verified' => true,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Unit Squad created successfully.',
+            'data' => [
+                'user' => User::findById($unitSquad->id),
+                'generated_password' => $password
+            ]
+        ], 201);
+    }
+
+    /**
+     * Update Unit Squad.
+     */
+    public function updateUnitSquad(Request $request, $id)
+    {
+        $unitSquad = User::where('role', 'unit_squad')->find($id);
+
+        if (!$unitSquad) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unit Squad member not found.'
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'full_name' => 'sometimes|string',
+            'email' => 'sometimes|email|unique:users,email,' . $id,
+            'mobile' => 'sometimes|string|unique:users,mobile,' . $id,
+            'city' => 'sometimes|string',
+            'district' => 'sometimes|string',
+            'status' => 'sometimes|string|in:Active,Inactive,Suspended',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        if ($request->has('full_name')) {
+            $unitSquad->full_name = $request->full_name;
+            $unitSquad->name = $request->full_name;
+        }
+        if ($request->has('email')) $unitSquad->email = $request->email;
+        if ($request->has('mobile')) $unitSquad->mobile = $request->mobile;
+        if ($request->has('city')) $unitSquad->city = $request->city;
+        if ($request->has('district')) $unitSquad->district = $request->district;
+        if ($request->has('status')) $unitSquad->status = $request->status;
+
+        $unitSquad->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Unit Squad updated successfully.',
+            'data' => User::findById($unitSquad->id)
+        ]);
+    }
+
+    /**
+     * Delete Unit Squad.
+     */
+    public function deleteUnitSquad(Request $request, $id)
+    {
+        $unitSquad = User::where('role', 'unit_squad')->find($id);
+
+        if (!$unitSquad) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unit Squad member not found.'
+            ], 404);
+        }
+
+        $unitSquad->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Unit Squad member deleted successfully.'
+        ]);
+    }
 }
+

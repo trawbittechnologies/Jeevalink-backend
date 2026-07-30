@@ -14,6 +14,14 @@ use Illuminate\Support\Str;
 class TechnicalAdminController extends Controller
 {
     /**
+     * Get technical admin dashboard.
+     */
+    public function dashboard(Request $request)
+    {
+        return $this->metrics($request);
+    }
+
+    /**
      * Get technical admin dashboard metrics & analytics.
      */
     public function metrics(Request $request)
