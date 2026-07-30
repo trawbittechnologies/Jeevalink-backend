@@ -9,7 +9,8 @@
         "ext-fileinfo": "*",
         "firebase/php-jwt": "^7.1",
         "laravel/framework": "^11.0",
-        "laravel/tinker": "^2.9"
+        "laravel/tinker": "^2.9",
+        "resend/resend-php": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

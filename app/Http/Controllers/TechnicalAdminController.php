@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
-use App\Mail\SuperAdminMail;
 
 class TechnicalAdminController extends Controller
 {
@@ -182,7 +181,23 @@ class TechnicalAdminController extends Controller
         $mailSent  = false;
         $mailError = null;
         try {
-            Mail::to($superAdmin->email)->send(new SuperAdminMail($superAdmin, $generatedPassword));
+            $resend = \Resend::client(env('RESEND_API_KEY', 're_xxxxxxxxx'));
+
+            $resend->emails->send([
+                'from' => 'onboarding@resend.dev',
+                'to' => $superAdmin->email,
+                'subject' => 'JeevaLink - Super Admin Account Created',
+                'html' => "<p>Hello {$superAdmin->full_name},</p>"
+                        . "<p>Your District Super Admin account for {$superAdmin->district} District has been created successfully.</p>"
+                        . "<p>Login Credentials:</p>"
+                        . "<ul>"
+                        . "<li>URL: https://jeevalink-frontend.vercel.app/login</li>"
+                        . "<li>Email: {$superAdmin->email}</li>"
+                        . "<li>Password: {$generatedPassword}</li>"
+                        . "</ul>"
+                        . "<p>Please change your password upon logging in.</p>"
+                        . "<p>Regards,<br>JeevaLink Technical Team</p>"
+            ]);
             \Illuminate\Support\Facades\Log::info('Mail sent successfully');
             $mailSent = true;
         } catch (\Throwable $e) {
