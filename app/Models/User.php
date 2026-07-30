@@ -29,7 +29,6 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
         'full_name',
         'email',
         'mobile',
@@ -79,9 +78,6 @@ class User extends Authenticatable
         parent::boot();
 
         static::creating(function (self $user) {
-            if (empty($user->getAttribute('name'))) {
-                $user->setAttribute('name', $user->full_name ?? 'User');
-            }
             if (empty($user->getAttribute('city'))) {
                 $user->setAttribute('city', $user->district ?? 'N/A');
             }

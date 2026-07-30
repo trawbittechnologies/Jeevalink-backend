@@ -146,7 +146,6 @@ class TechnicalAdminController extends Controller
         $whatsapp = $request->whatsapp_number ?? $request->whatsapp ?? null;
 
         $superAdmin = User::create([
-            'name' => $request->full_name,
             'full_name' => $request->full_name,
             'email' => $request->email,
             'mobile' => $request->mobile,
