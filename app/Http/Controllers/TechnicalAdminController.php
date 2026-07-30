@@ -135,7 +135,7 @@ class TechnicalAdminController extends Controller
             'district' => 'required|string',
             'full_name' => 'required|string',
             'email' => 'required|email|unique:users,email',
-            'mobile' => 'required|string',
+            'mobile' => 'required|string|unique:users,mobile',
         ]);
 
         if ($validator->fails()) {
