@@ -40,11 +40,11 @@ class BlockAdminController extends Controller
         $totalUsers = $usersQuery->count();
 
         $requestsQuery = BloodRequest::query();
-        if ($city) $requestsQuery->where('hospital_city', $city);
+        if ($city) $requestsQuery->where('city', $city);
         elseif ($district) $requestsQuery->where('district', $district);
         $totalRequests = $requestsQuery->count();
-        $pendingRequests = (clone $requestsQuery)->where('status', 'pending')->count();
-        $fulfilledRequests = (clone $requestsQuery)->where('status', 'fulfilled')->count();
+        $pendingRequests = (clone $requestsQuery)->whereRaw('LOWER(status) = ?', ['pending'])->count();
+        $fulfilledRequests = (clone $requestsQuery)->whereRaw('LOWER(status) = ?', ['fulfilled'])->count();
 
         return response()->json([
             'success' => true,
