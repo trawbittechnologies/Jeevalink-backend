@@ -100,7 +100,7 @@ class TechnicalAdminController extends Controller
             return [
                 'id' => $sa->id,
                 'district' => $sa->district ?? 'Unassigned',
-                'full_name' => $sa->full_name ?? $sa->name,
+                'full_name' => $sa->full_name ?? 'User',
                 'email' => $sa->email,
                 'mobile' => $sa->mobile ?? 'N/A',
                 'secondaryContactName' => $sa->secondary_contact_name ?? '',
@@ -142,7 +142,6 @@ class TechnicalAdminController extends Controller
         $passwordHash = Hash::make($generatedPassword);
 
         $superAdmin = User::create([
-            'name' => $request->full_name,
             'full_name' => $request->full_name,
             'email' => $request->email,
             'mobile' => $request->mobile,
@@ -215,7 +214,6 @@ class TechnicalAdminController extends Controller
         if ($request->has('district')) $superAdmin->district = $request->district;
         if ($request->has('full_name')) {
             $superAdmin->full_name = $request->full_name;
-            $superAdmin->name = $request->full_name;
         }
         if ($request->has('email')) $superAdmin->email = $request->email;
         if ($request->has('mobile')) $superAdmin->mobile = $request->mobile;
