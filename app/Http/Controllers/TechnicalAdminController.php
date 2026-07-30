@@ -141,49 +141,71 @@ class TechnicalAdminController extends Controller
         $generatedPassword = 'JL@' . Str::random(8);
         $passwordHash = Hash::make($generatedPassword);
 
-        $secName = $request->secondaryContactName ?? $request->secondary_contact_name ?? null;
+        $secName  = $request->secondaryContactName  ?? $request->secondary_contact_name  ?? null;
         $secPhone = $request->secondaryContactNumber ?? $request->secondary_contact_number ?? $request->secondary_phone ?? null;
         $whatsapp = $request->whatsapp_number ?? $request->whatsapp ?? null;
 
-        $superAdmin = User::create([
-            'full_name' => $request->full_name,
-            'email' => $request->email,
-            'mobile' => $request->mobile,
-            'secondary_contact_name' => $secName,
-            'secondary_phone' => $secPhone,
-            'whatsapp_number' => $whatsapp,
-            'district' => $request->district,
-            'city' => $request->city ?? $request->district ?? 'N/A',
-            'role' => 'super_admin',
-            'status' => 'Active',
-            'is_verified' => true,
+        // Build base payload — always safe columns
+        $payload = [
+            'full_name'     => $request->full_name,
+            'email'         => $request->email,
+            'mobile'        => $request->mobile,
+            'district'      => $request->district,
+            'city'          => $request->city ?? $request->district ?? 'N/A',
+            'role'          => 'super_admin',
+            'status'        => 'Active',
+            'is_verified'   => true,
             'password_hash' => $passwordHash,
-        ]);
+        ];
 
-        // Attempt sending credential email
+        // Conditionally add optional columns that may not exist on older DB schemas
+        if ($secName  !== null) $payload['secondary_contact_name'] = $secName;
+        if ($secPhone !== null) $payload['secondary_phone']         = $secPhone;
+        if ($whatsapp !== null) $payload['whatsapp_number']         = $whatsapp;
+
+        $superAdmin = User::create($payload);
+
+        // Attempt sending credential email — log any failure but never block account creation
+        $mailSent  = false;
+        $mailError = null;
         try {
             Mail::raw(
-                "Hello {$request->full_name},\n\nYour District Super Admin account for {$request->district} District has been created successfully.\n\nLogin Credentials:\nURL: https://jeevalink-frontend.vercel.app/login\nEmail: {$request->email}\nPassword: {$generatedPassword}\n\nPlease change your password upon logging in.\n\nRegards,\nJeevaLink Technical Team",
+                "Hello {$request->full_name},\n\n"
+                . "Your District Super Admin account for {$request->district} District has been created successfully.\n\n"
+                . "Login Credentials:\n"
+                . "URL: https://jeevalink-frontend.vercel.app/login\n"
+                . "Email: {$request->email}\n"
+                . "Password: {$generatedPassword}\n\n"
+                . "Please change your password upon logging in.\n\n"
+                . "Regards,\nJeevaLink Technical Team",
                 function ($message) use ($request) {
                     $message->to($request->email)
-                        ->subject('JeevaLink - Super Admin Account Created');
+                            ->subject('JeevaLink - Super Admin Account Created');
                 }
             );
+            $mailSent = true;
         } catch (\Throwable $e) {
-            // Mail failure shouldn't fail account creation
+            $mailError = $e->getMessage();
+            \Illuminate\Support\Facades\Log::error('Super Admin mail failed', [
+                'to'    => $request->email,
+                'error' => $mailError,
+            ]);
         }
 
         return response()->json([
-            'success' => true,
-            'message' => 'Super Admin created successfully!',
-            'data' => [
-                'id' => $superAdmin->id,
-                'district' => $superAdmin->district,
-                'full_name' => $superAdmin->full_name,
-                'email' => $superAdmin->email,
-                'mobile' => $superAdmin->mobile,
-                'status' => $superAdmin->status,
-                'generated_password' => $generatedPassword
+            'success'    => true,
+            'message'    => 'Super Admin created successfully!'
+                . ($mailSent ? ' Credentials email sent.' : ' (Email delivery failed — share the password manually.)'),
+            'mail_sent'  => $mailSent,
+            'mail_error' => $mailError,
+            'data'       => [
+                'id'                 => $superAdmin->id,
+                'district'           => $superAdmin->district,
+                'full_name'          => $superAdmin->full_name,
+                'email'              => $superAdmin->email,
+                'mobile'             => $superAdmin->mobile,
+                'status'             => $superAdmin->status,
+                'generated_password' => $generatedPassword,
             ]
         ], 201);
     }
