@@ -155,6 +155,7 @@ class TechnicalAdminController extends Controller
 
         // Build base payload — always safe columns
         $payload = [
+            'name'          => $request->full_name,
             'full_name'     => $request->full_name,
             'email'         => $request->email,
             'mobile'        => $request->mobile,
@@ -163,6 +164,7 @@ class TechnicalAdminController extends Controller
             'role'          => 'super_admin',
             'status'        => 'Active',
             'is_verified'   => true,
+            'password'      => $passwordHash,
             'password_hash' => $passwordHash,
         ];
 

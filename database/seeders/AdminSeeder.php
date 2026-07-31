@@ -29,9 +29,11 @@ class AdminSeeder extends Seeder
         }
 
         DB::table('users')->insert([
+            'name'                   => env('ADMIN_NAME', 'JeevaLink Admin'),
             'full_name'              => env('ADMIN_NAME', 'JeevaLink Admin'),
             'email'                  => $adminEmail,
             'mobile'                 => $adminMobile,
+            'password'               => Hash::make($adminPassword),
             'password_hash'          => Hash::make($adminPassword),
 
             'role'                   => 'technical_admin',

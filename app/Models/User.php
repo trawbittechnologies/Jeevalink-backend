@@ -29,9 +29,11 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
+        'name',
         'full_name',
         'email',
         'mobile',
+        'password',
         'password_hash',
         'role',
         'blood_group',
@@ -78,14 +80,22 @@ class User extends Authenticatable
         parent::boot();
 
         static::creating(function (self $user) {
-            if (empty($user->getAttribute('city'))) {
-                $user->setAttribute('city', $user->district ?? 'N/A');
+            $attrs = $user->getAttributes();
+
+            if (empty($attrs['name'])) {
+                $user->attributes['name'] = $attrs['full_name'] ?? 'User';
             }
-            $isSqlite = \Illuminate\Support\Facades\DB::connection()->getDriverName() === 'sqlite';
-            if ($isSqlite) {
-                if (empty($user->getAttribute('password')) && !empty($user->password_hash)) {
-                    $user->setAttribute('password', $user->password_hash);
-                }
+            if (empty($attrs['full_name'])) {
+                $user->attributes['full_name'] = $attrs['name'] ?? 'User';
+            }
+            if (empty($attrs['city'])) {
+                $user->attributes['city'] = $attrs['district'] ?? 'N/A';
+            }
+            if (empty($attrs['password']) && !empty($attrs['password_hash'])) {
+                $user->attributes['password'] = $attrs['password_hash'];
+            }
+            if (empty($attrs['password_hash']) && !empty($attrs['password'])) {
+                $user->attributes['password_hash'] = $attrs['password'];
             }
         });
     }
