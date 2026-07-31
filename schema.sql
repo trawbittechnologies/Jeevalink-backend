@@ -189,3 +189,34 @@ CREATE TRIGGER update_blood_requests_updated_at
     BEFORE UPDATE ON blood_requests 
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
+
+-- --------------------------------------------------------
+-- Table structure for table campaigns
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS campaigns (
+  id BIGSERIAL PRIMARY KEY,
+  user_id BIGINT REFERENCES users (id) ON DELETE SET NULL,
+  author_name VARCHAR(255) DEFAULT NULL,
+  author_role VARCHAR(100) DEFAULT NULL,
+  title VARCHAR(255) NOT NULL,
+  category VARCHAR(100) NOT NULL DEFAULT 'blood_donation',
+  description TEXT NOT NULL,
+  venue VARCHAR(255) DEFAULT NULL,
+  event_date VARCHAR(100) DEFAULT NULL,
+  event_time VARCHAR(100) DEFAULT NULL,
+  organizer_name VARCHAR(255) DEFAULT NULL,
+  contact_phone VARCHAR(50) DEFAULT NULL,
+  image_url TEXT DEFAULT NULL,
+  district VARCHAR(100) DEFAULT NULL,
+  block VARCHAR(100) DEFAULT NULL,
+  likes_count INT NOT NULL DEFAULT 0,
+  shares_count INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TRIGGER update_campaigns_updated_at 
+    BEFORE UPDATE ON campaigns 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+

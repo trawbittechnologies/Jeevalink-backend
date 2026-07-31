@@ -16,6 +16,7 @@ use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\BlockAdminController;
 use App\Http\Controllers\UnitSquadController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\CampaignController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -26,6 +27,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
     Route::get('/location/pincode/{pincode}', [AuthController::class, 'pincodeLookup']);
     Route::get('/partners', [PartnerController::class, 'index']);
+    Route::get('/campaigns', [CampaignController::class, 'index']);
 
     // ─── Authenticated Group ─────────────────────────────────────────────
     Route::middleware('jwt.auth')->group(function () {
@@ -133,6 +135,14 @@ Route::prefix('v1')->group(function () {
         Route::post('/admin/complaints', [AdminController::class, 'fileComplaint']);
         Route::post('/feedback', [FeedbackController::class, 'store']);
         Route::post('/support/tickets', [SupportTicketController::class, 'store']);
+
+        // Campaign Hub Endpoints
+        Route::post('/campaigns', [CampaignController::class, 'store']);
+        Route::get('/campaigns/{id}', [CampaignController::class, 'show']);
+        Route::put('/campaigns/{id}', [CampaignController::class, 'update']);
+        Route::delete('/campaigns/{id}', [CampaignController::class, 'destroy']);
+        Route::post('/campaigns/{id}/like', [CampaignController::class, 'toggleLike']);
+        Route::post('/campaigns/{id}/share', [CampaignController::class, 'incrementShare']);
 
         // Management Endpoints (Accessible by Block Admin level and higher)
         Route::middleware('jwt.role:block_admin')->group(function () {
