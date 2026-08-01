@@ -62,7 +62,7 @@ class CampaignController extends Controller
         if ($user) {
             $validated['user_id'] = $user->id;
             if (empty($validated['author_name'])) {
-                $validated['author_name'] = $user->full_name ?? $user->name ?? 'User';
+                $validated['author_name'] = $user->primary_name ?? $user->name ?? 'User';
             }
             if (empty($validated['author_role'])) {
                 $validated['author_role'] = $user->role ?? 'user';
@@ -112,6 +112,14 @@ class CampaignController extends Controller
             ], 404);
         }
 
+        $user = auth()->user();
+        if ($user && $campaign->user_id !== $user->id && !in_array($user->role, ['admin', 'super_admin', 'technical_admin'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Only the author or admins can edit this campaign.'
+            ], 403);
+        }
+
         $validated = $request->validate([
             'title' => 'sometimes|required|string|max:255',
             'category' => 'sometimes|required|string|max:100',
@@ -149,6 +157,14 @@ class CampaignController extends Controller
                 'success' => false,
                 'message' => 'Campaign not found'
             ], 404);
+        }
+
+        $user = auth()->user();
+        if ($user && $campaign->user_id !== $user->id && !in_array($user->role, ['admin', 'super_admin', 'technical_admin'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Only the author or admins can delete this campaign.'
+            ], 403);
         }
 
         $campaign->delete();

@@ -140,7 +140,7 @@ class FeedbackController extends Controller
             DB::table('activity_logs')->insert([
                 'action'     => $action,
                 'details'    => $details,
-                'admin_name' => $admin ? $admin->full_name : 'System Admin',
+                'admin_name' => $admin ? $admin->primary_name : 'System Admin',
                 'admin_id'   => $admin ? $admin->id : null,
                 'type'       => 'feedback',
                 'ip_address' => request()->ip(),

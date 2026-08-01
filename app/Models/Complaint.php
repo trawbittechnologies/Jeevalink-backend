@@ -59,8 +59,8 @@ class Complaint extends Model
         $complaint = self::with(['reporter', 'target'])->find($id);
         if ($complaint) {
             $arr = $complaint->toArray();
-            $arr['reporter_name'] = $complaint->reporter->full_name ?? null;
-            $arr['target_name'] = $complaint->target->full_name ?? null;
+            $arr['reporter_name'] = $complaint->reporter->primary_name ?? null;
+            $arr['target_name'] = $complaint->target->primary_name ?? null;
             return $arr;
         }
         return null;
@@ -79,8 +79,8 @@ class Complaint extends Model
 
         return $complaints->map(function ($complaint) {
             $arr = $complaint->toArray();
-            $arr['reporter_name'] = $complaint->reporter->full_name ?? null;
-            $arr['target_name'] = $complaint->target->full_name ?? null;
+            $arr['reporter_name'] = $complaint->reporter->primary_name ?? null;
+            $arr['target_name'] = $complaint->target->primary_name ?? null;
             return $arr;
         })->toArray();
     }

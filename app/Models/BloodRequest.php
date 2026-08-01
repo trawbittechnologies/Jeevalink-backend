@@ -68,9 +68,9 @@ class BloodRequest extends Model
         $request = self::with(['requester', 'accepter'])->find($id);
         if ($request) {
             $arr = $request->toArray();
-            $arr['requester_name'] = $request->requester->full_name ?? null;
+            $arr['requester_name'] = $request->requester->primary_name ?? null;
             $arr['requester_email'] = $request->requester->email ?? null;
-            $arr['accepter_name'] = $request->accepter->full_name ?? null;
+            $arr['accepter_name'] = $request->accepter->primary_name ?? null;
             $arr['accepter_email'] = $request->accepter->email ?? null;
             return $arr;
         }
@@ -115,10 +115,10 @@ class BloodRequest extends Model
 
         return $requests->map(function ($req) {
             $arr = $req->toArray();
-            $arr['requester_name'] = $req->requester->full_name ?? null;
+            $arr['requester_name'] = $req->requester->primary_name ?? null;
             $arr['requester_email'] = $req->requester->email ?? null;
             $arr['requester_picture'] = $req->requester->profile_picture ?? null;
-            $arr['accepter_name'] = $req->accepter->full_name ?? null;
+            $arr['accepter_name'] = $req->accepter->primary_name ?? null;
             $arr['accepter_email'] = $req->accepter->email ?? null;
             return $arr;
         })->toArray();

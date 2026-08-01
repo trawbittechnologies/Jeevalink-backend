@@ -30,6 +30,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/campaigns', [CampaignController::class, 'index']);
 
     // ─── Authenticated Group ─────────────────────────────────────────────
+    Route::put('/test-update/{id}', [SuperAdminController::class, 'updateBlockAdmin']);
     Route::middleware('jwt.auth')->group(function () {
 
         // ── Auth Endpoints ───────────────────────────────────────────────
@@ -37,6 +38,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/auth/me', [AuthController::class, 'me']);
         Route::post('/auth/refresh', [AuthController::class, 'refresh']);
         Route::post('/auth/change-password', [AuthController::class, 'changePassword']);
+        Route::post('/auth/change-email', [AuthController::class, 'changeEmail']);
         Route::patch('/auth/profile', [AuthController::class, 'profile']);
         Route::patch('/auth/toggle-availability', [AuthController::class, 'toggleAvailability']);
         Route::post('/auth/push-token', [AuthController::class, 'pushToken']);
@@ -62,6 +64,8 @@ Route::prefix('v1')->group(function () {
             Route::put('/super-admin/block-admins/{id}', [SuperAdminController::class, 'updateBlockAdmin']);
             Route::delete('/super-admin/block-admins/{id}', [SuperAdminController::class, 'deleteBlockAdmin']);
         });
+
+        Route::put('/test-update/{id}', [SuperAdminController::class, 'updateBlockAdmin']);
 
         // ── Block Admin Endpoints (Level 3) ────────────────────────────────
         Route::middleware('jwt.role:block_admin')->group(function () {

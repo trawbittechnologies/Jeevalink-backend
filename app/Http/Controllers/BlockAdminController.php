@@ -82,15 +82,15 @@ class BlockAdminController extends Controller
         $formatted = $volunteers->map(function ($v) {
             return [
                 'id' => $v->id,
-                'full_name' => $v->full_name ?? $v->name,
+                'primary_name' => $v->primary_name ?? $v->name,
                 'email' => $v->email,
                 'mobile' => $v->mobile ?? 'N/A',
                 'city' => $v->city ?? 'N/A',
                 'district' => $v->district ?? 'N/A',
                 'status' => $v->status ?? 'Active',
                 'is_verified' => (bool)$v->is_verified,
-                'secondaryContactName' => $v->secondary_contact_name ?? '',
-                'secondary_contact_name' => $v->secondary_contact_name ?? '',
+                'secondary_name' => $v->secondary_name ?? '',
+                'secondary_name' => $v->secondary_name ?? '',
                 'secondaryContactNumber' => $v->secondary_phone ?? '',
                 'secondary_contact_number' => $v->secondary_phone ?? '',
                 'secondary_phone' => $v->secondary_phone ?? '',
@@ -112,7 +112,7 @@ class BlockAdminController extends Controller
     public function createVolunteer(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'full_name' => 'required|string|max:255',
+            'primary_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'mobile' => 'required|string|unique:users,mobile',
             'city' => 'required|string|max:100',
@@ -130,11 +130,11 @@ class BlockAdminController extends Controller
         $password = Str::random(10);
 
         $volunteer = User::create([
-            'name' => $request->full_name,
-            'full_name' => $request->full_name,
+            'name' => $request->primary_name,
+            'primary_name' => $request->primary_name,
             'email' => $request->email,
             'mobile' => $request->mobile,
-            'secondary_contact_name' => $request->secondaryContactName ?? $request->secondary_contact_name ?? $request->person2Name ?? null,
+            'secondary_name' => $request->secondary_name ?? $request->secondary_name ?? $request->person2Name ?? null,
             'secondary_phone' => $request->secondaryContactNumber ?? $request->secondary_contact_number ?? $request->secondary_phone ?? $request->person2Contact ?? null,
             'whatsapp_number' => $request->whatsapp_number ?? $request->whatsapp ?? null,
             'password_hash' => Hash::make($password),
@@ -148,7 +148,7 @@ class BlockAdminController extends Controller
 
         try {
             Mail::raw(
-                "Hello {$request->full_name},\n\nYou have been registered as a Volunteer for {$request->city}.\n\nLogin credentials:\nEmail: {$request->email}\nPassword: {$password}\n\nLogin at: https://jeevalink-frontend.vercel.app/login",
+                "Hello {$request->primary_name},\n\nYou have been registered as a Volunteer for {$request->city}.\n\nLogin credentials:\nEmail: {$request->email}\nPassword: {$password}\n\nLogin at: https://jeevalink-frontend.vercel.app/login",
                 function ($mail) use ($request) {
                     $mail->to($request->email)->subject('JeevaLink - Volunteer Account Created');
                 }
@@ -180,7 +180,7 @@ class BlockAdminController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'full_name' => 'sometimes|string',
+            'primary_name' => 'sometimes|string',
             'email' => 'sometimes|email|unique:users,email,' . $id,
             'mobile' => 'sometimes|string|unique:users,mobile,' . $id,
             'city' => 'sometimes|string',
@@ -196,16 +196,16 @@ class BlockAdminController extends Controller
             ], 422);
         }
 
-        if ($request->has('full_name')) {
-            $volunteer->full_name = $request->full_name;
-            $volunteer->name = $request->full_name;
+        if ($request->has('primary_name')) {
+            $volunteer->primary_name = $request->primary_name;
+            $volunteer->name = $request->primary_name;
         }
         if ($request->has('email')) $volunteer->email = $request->email;
         if ($request->has('mobile')) $volunteer->mobile = $request->mobile;
         if ($request->has('city')) $volunteer->city = $request->city;
         if ($request->has('district')) $volunteer->district = $request->district;
-        if ($request->has('secondaryContactName') || $request->has('secondary_contact_name') || $request->has('person2Name')) {
-            $volunteer->secondary_contact_name = $request->secondaryContactName ?? $request->secondary_contact_name ?? $request->person2Name;
+        if ($request->has('secondary_name') || $request->has('secondary_name') || $request->has('person2Name')) {
+            $volunteer->secondary_name = $request->secondary_name ?? $request->secondary_name ?? $request->person2Name;
         }
         if ($request->has('secondaryContactNumber') || $request->has('secondary_contact_number') || $request->has('secondary_phone') || $request->has('person2Contact')) {
             $volunteer->secondary_phone = $request->secondaryContactNumber ?? $request->secondary_contact_number ?? $request->secondary_phone ?? $request->person2Contact;

@@ -19,7 +19,7 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'full_name' => 'required|string|max:255',
+            'primary_name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'mobile' => 'required|string|max:20',
             'password' => 'required|string|min:6',
@@ -83,7 +83,7 @@ class AuthController extends Controller
         }
 
         $user = User::create([
-            'full_name' => $request->full_name,
+            'primary_name' => $request->primary_name,
             'email' => $request->email,
             'mobile' => $request->mobile,
             'password_hash' => Hash::make($request->password),
@@ -219,7 +219,7 @@ class AuthController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'full_name' => 'nullable|string|max:255',
+            'primary_name' => 'nullable|string|max:255',
             'email' => 'nullable|email|max:255|unique:users,email,' . $user->id,
             'mobile' => 'nullable|string|max:20|unique:users,mobile,' . $user->id,
             'blood_group' => 'nullable|in:A+,A-,B+,B-,AB+,AB-,O+,O-,N/A',
@@ -539,6 +539,53 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Password changed successfully.'
+        ]);
+    }
+
+    /**
+     * Change authenticated user email address.
+     */
+    public function changeEmail(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Authentication required.',
+                'errors' => []
+            ], 401);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'current_password' => 'required|string',
+            'new_email' => 'required|email|max:255|unique:users,email,' . $user->id,
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        if (!Hash::check($request->current_password, $user->password_hash)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Current password is incorrect.',
+                'errors' => ['current_password' => ['Current password is incorrect.']]
+            ], 400);
+        }
+
+        $user->email = $request->new_email;
+        $user->save();
+
+        $profile = User::findById($user->id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Email address updated successfully.',
+            'data' => ['user' => $profile]
         ]);
     }
 }

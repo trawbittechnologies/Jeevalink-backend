@@ -87,7 +87,7 @@ class NotificationService
     public static function notifyFulfillment(array $requestData, array $donorData): void
     {
         $title = "❤️ Blood Request Fulfilled";
-        $message = "Your request for patient {$requestData['patient_name']} has been marked as fulfilled by {$donorData['full_name']}.";
+        $message = "Your request for patient {$requestData['patient_name']} has been marked as fulfilled by {$donorData['primary_name']}.";
 
         Notification::create([
             'recipient_id' => $requestData['requested_by'],
@@ -126,7 +126,7 @@ class NotificationService
     public static function notifyAcceptance(array $requestData, array $donorData): void
     {
         $title = "🚨 Emergency Request Accepted";
-        $message = "Donor {$donorData['full_name']} has accepted your emergency request for patient {$requestData['patient_name']}.";
+        $message = "Donor {$donorData['primary_name']} has accepted your emergency request for patient {$requestData['patient_name']}.";
 
         Notification::create([
             'recipient_id' => $requestData['requested_by'],
@@ -140,7 +140,7 @@ class NotificationService
             FCMService::sendPushNotification(
                 $requester->fcm_token,
                 $title,
-                "Donor {$donorData['full_name']} has accepted your emergency request.",
+                "Donor {$donorData['primary_name']} has accepted your emergency request.",
                 ['requestId' => $requestData['id'], 'type' => 'Acceptance']
             );
         }

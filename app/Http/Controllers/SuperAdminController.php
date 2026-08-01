@@ -82,15 +82,15 @@ class SuperAdminController extends Controller
         $formatted = $blockAdmins->map(function ($ba) {
             return [
                 'id' => $ba->id,
-                'full_name' => $ba->full_name ?? $ba->name,
+                'primary_name' => $ba->primary_name ?? $ba->name,
                 'email' => $ba->email,
                 'mobile' => $ba->mobile ?? 'N/A',
                 'district' => $ba->district ?? 'N/A',
                 'city' => $ba->city ?? 'N/A',
                 'role' => $ba->role,
                 'status' => $ba->status ?? 'Active',
-                'secondaryContactName' => $ba->secondary_contact_name ?? '',
-                'secondary_contact_name' => $ba->secondary_contact_name ?? '',
+                'secondary_name' => $ba->secondary_name ?? '',
+                'secondary_name' => $ba->secondary_name ?? '',
                 'secondaryContactNumber' => $ba->secondary_phone ?? '',
                 'secondary_contact_number' => $ba->secondary_phone ?? '',
                 'secondary_phone' => $ba->secondary_phone ?? '',
@@ -111,7 +111,7 @@ class SuperAdminController extends Controller
     public function createBlockAdmin(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'full_name' => 'required|string|max:255',
+            'primary_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'mobile' => 'required|string|unique:users,mobile',
             'district' => 'required|string',
@@ -119,6 +119,7 @@ class SuperAdminController extends Controller
         ]);
 
         if ($validator->fails()) {
+            \Log::error('Block admin validation failed: ', $validator->errors()->toArray());
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed: ' . implode(', ', $validator->errors()->all()),
@@ -129,11 +130,10 @@ class SuperAdminController extends Controller
         $password = 'BA@' . Str::random(8);
 
         $blockAdmin = User::create([
-            'name' => $request->full_name,
-            'full_name' => $request->full_name,
+            'primary_name' => $request->primary_name,
             'email' => $request->email,
             'mobile' => $request->mobile,
-            'secondary_contact_name' => $request->secondaryContactName ?? $request->secondary_contact_name ?? null,
+            'secondary_name' => $request->secondary_name ?? $request->secondary_name ?? null,
             'secondary_phone' => $request->secondaryContactNumber ?? $request->secondary_contact_number ?? $request->secondary_phone ?? null,
             'whatsapp_number' => $request->whatsapp_number ?? $request->whatsapp ?? null,
             'district' => $request->district,
@@ -146,7 +146,7 @@ class SuperAdminController extends Controller
 
         try {
             Mail::raw(
-                "Hello {$request->full_name},\n\nYour Block Admin account for {$request->city}, {$request->district} has been created.\n\nEmail: {$request->email}\nPassword: {$password}\n\nLogin at: https://jeevalink-frontend.vercel.app/login",
+                "Hello {$request->primary_name},\n\nYour Block Admin account for {$request->city}, {$request->district} has been created.\n\nEmail: {$request->email}\nPassword: {$password}\n\nLogin at: https://jeevalink-frontend.vercel.app/login",
                 function ($mail) use ($request) {
                     $mail->to($request->email)->subject('JeevaLink - Block Admin Account Created');
                 }
@@ -178,7 +178,7 @@ class SuperAdminController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'full_name' => 'sometimes|string',
+            'primary_name' => 'sometimes|string',
             'email' => 'sometimes|email|unique:users,email,' . $id,
             'mobile' => 'sometimes|string|unique:users,mobile,' . $id,
             'district' => 'sometimes|string',
@@ -194,16 +194,18 @@ class SuperAdminController extends Controller
             ], 422);
         }
 
-        if ($request->has('full_name')) {
-            $blockAdmin->full_name = $request->full_name;
-            $blockAdmin->name = $request->full_name;
+        \Log::info('updateBlockAdmin called', ['id' => $id, 'payload' => $request->all()]);
+
+        if ($request->has('primary_name')) {
+            \Log::info('updating primary_name to: ' . $request->primary_name);
+            $blockAdmin->primary_name = $request->primary_name;
         }
         if ($request->has('email')) $blockAdmin->email = $request->email;
         if ($request->has('mobile')) $blockAdmin->mobile = $request->mobile;
         if ($request->has('district')) $blockAdmin->district = $request->district;
         if ($request->has('city')) $blockAdmin->city = $request->city;
-        if ($request->has('secondaryContactName') || $request->has('secondary_contact_name')) {
-            $blockAdmin->secondary_contact_name = $request->secondaryContactName ?? $request->secondary_contact_name;
+        if ($request->has('secondary_name') || $request->has('secondary_name')) {
+            $blockAdmin->secondary_name = $request->secondary_name ?? $request->secondary_name;
         }
         if ($request->has('secondaryContactNumber') || $request->has('secondary_contact_number') || $request->has('secondary_phone')) {
             $blockAdmin->secondary_phone = $request->secondaryContactNumber ?? $request->secondary_contact_number ?? $request->secondary_phone;
@@ -211,7 +213,15 @@ class SuperAdminController extends Controller
         if ($request->has('whatsapp_number')) $blockAdmin->whatsapp_number = $request->whatsapp_number;
         if ($request->has('status')) $blockAdmin->status = $request->status;
 
+        if ($request->filled('password')) {
+            $blockAdmin->password = Hash::make($request->password);
+        }
+
+        \Log::info('Before save', ['attributes' => $blockAdmin->getAttributes()]);
+        
         $blockAdmin->save();
+        
+        \Log::info('After save', ['attributes' => $blockAdmin->fresh()->getAttributes()]);
 
         return response()->json([
             'success' => true,

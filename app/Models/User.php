@@ -19,7 +19,8 @@ class User extends Authenticatable
      */
     protected $appends = [
         'name',
-        'secondaryContactName',
+        'primaryName',
+        'secondaryName',
         'secondaryContactNumber',
     ];
 
@@ -29,8 +30,7 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
-        'full_name',
+        'primary_name',
         'email',
         'mobile',
         'password',
@@ -62,7 +62,7 @@ class User extends Authenticatable
         'eligibility_status',
         'eligibility_checked_at',
         'sex',
-        'secondary_contact_name',
+        'secondary_name',
         'secondary_phone',
         'whatsapp_number',
         'organization_name',
@@ -82,12 +82,6 @@ class User extends Authenticatable
         static::creating(function (self $user) {
             $attrs = $user->getAttributes();
 
-            if (empty($attrs['name'])) {
-                $user->attributes['name'] = $attrs['full_name'] ?? 'User';
-            }
-            if (empty($attrs['full_name'])) {
-                $user->attributes['full_name'] = $attrs['name'] ?? 'User';
-            }
             if (empty($attrs['city'])) {
                 $user->attributes['city'] = $attrs['district'] ?? 'N/A';
             }
@@ -101,19 +95,27 @@ class User extends Authenticatable
     }
 
     /**
-     * Accessor for virtual 'name' attribute (maps directly to full_name).
+     * Accessor for virtual 'name' attribute (maps directly to primary_name).
      */
     public function getNameAttribute(): ?string
     {
-        return $this->attributes['full_name'] ?? 'User';
+        return $this->attributes['primary_name'] ?? 'User';
     }
 
     /**
-     * Accessor for 'secondaryContactName' attribute.
+     * Accessor for 'primaryName' attribute.
      */
-    public function getSecondaryContactNameAttribute(): ?string
+    public function getPrimaryNameAttribute(): ?string
     {
-        return $this->attributes['secondary_contact_name'] ?? null;
+        return $this->attributes['primary_name'] ?? 'User';
+    }
+
+    /**
+     * Accessor for 'secondaryName' attribute.
+     */
+    public function getSecondaryNameAttribute(): ?string
+    {
+        return $this->attributes['secondary_name'] ?? null;
     }
 
     /**
@@ -223,7 +225,7 @@ class User extends Authenticatable
         }
         
         $allowedFields = [
-            'full_name', 'blood_group', 'city', 'district', 
+            'primary_name', 'secondary_name', 'blood_group', 'city', 'district', 
             'weight', 'dob', 'last_donated_date', 
             'profile_picture', 'email', 'mobile', 'sex', 'pincode'
         ];

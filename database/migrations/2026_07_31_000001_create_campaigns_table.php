@@ -25,7 +25,7 @@ return new class extends Migration
                 $table->string('event_time')->nullable();
                 $table->string('organizer_name')->nullable();
                 $table->string('contact_phone')->nullable();
-                $table->text('image_url')->nullable();
+                $table->longText('image_url')->nullable();
                 $table->string('district')->nullable();
                 $table->string('block')->nullable();
                 $table->integer('likes_count')->default(0);

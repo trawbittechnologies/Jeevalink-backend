@@ -402,7 +402,7 @@ class AdminController extends Controller
     public function addVolunteer(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'full_name' => 'required|string|max:255',
+            'primary_name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'mobile' => 'required|string|max:20',
             'city' => 'required|string|max:100',
@@ -436,7 +436,7 @@ class AdminController extends Controller
         $password = \Illuminate\Support\Str::random(10);
 
         $user = User::create([
-            'full_name' => $request->full_name,
+            'primary_name' => $request->primary_name,
             'email' => $request->email,
             'mobile' => $request->mobile,
             'password_hash' => \Illuminate\Support\Facades\Hash::make($password),
@@ -453,7 +453,7 @@ class AdminController extends Controller
         try {
             $loginUrl = env('FRONTEND_URL', 'http://localhost:5173') . '/login';
             \Illuminate\Support\Facades\Mail::to($user->email)->send(
-                new \App\Mail\VolunteerWelcomeMail($user->full_name, $user->email, $password, $loginUrl)
+                new \App\Mail\VolunteerWelcomeMail($user->primary_name, $user->email, $password, $loginUrl)
             );
             $emailSent = true;
         } catch (\Throwable $e) {

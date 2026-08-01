@@ -36,7 +36,7 @@ class VolunteerController extends Controller
 
         // Send email
         try {
-            Mail::to($user->email)->send(new VolunteerUserOtpMail($otp, $user->full_name));
+            Mail::to($user->email)->send(new VolunteerUserOtpMail($otp, $user->primary_name));
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error("Failed to send OTP email: " . $e->getMessage());
             return response()->json([
@@ -128,7 +128,7 @@ class VolunteerController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'full_name' => 'sometimes|string|max:255',
+            'primary_name' => 'sometimes|string|max:255',
             'email' => 'sometimes|email|unique:users,email,' . $user->id,
             'mobile' => 'sometimes|string|unique:users,mobile,' . $user->id,
             'blood_group' => 'sometimes|string',
@@ -144,7 +144,7 @@ class VolunteerController extends Controller
             ], 422);
         }
 
-        if ($request->has('full_name')) $user->full_name = $request->full_name;
+        if ($request->has('primary_name')) $user->primary_name = $request->primary_name;
         if ($request->has('email')) $user->email = $request->email;
         if ($request->has('mobile')) $user->mobile = $request->mobile;
         if ($request->has('blood_group')) $user->blood_group = $request->blood_group;
@@ -171,7 +171,7 @@ class VolunteerController extends Controller
     public function addUser(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'full_name' => 'required|string|max:255',
+            'primary_name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'mobile' => 'required|string|max:20',
             'role' => 'nullable|in:user',
@@ -229,7 +229,7 @@ class VolunteerController extends Controller
         }
 
         $user = User::create([
-            'full_name' => $request->full_name,
+            'primary_name' => $request->primary_name,
             'email' => $request->email,
             'mobile' => $request->mobile,
             'password_hash' => Hash::make($password),
@@ -252,7 +252,7 @@ class VolunteerController extends Controller
         try {
             $loginUrl = env('FRONTEND_URL', 'http://localhost:5173') . '/login';
             Mail::to($user->email)->send(
-                new UserWelcomeMail($user->full_name, $user->email, $password, $loginUrl)
+                new UserWelcomeMail($user->primary_name, $user->email, $password, $loginUrl)
             );
             $emailSent = true;
         } catch (\Throwable $e) {
@@ -319,14 +319,14 @@ class VolunteerController extends Controller
         $formatted = $unitSquads->map(function ($us) {
             return [
                 'id' => $us->id,
-                'full_name' => $us->full_name ?? $us->name,
+                'primary_name' => $us->primary_name ?? $us->name,
                 'email' => $us->email,
                 'mobile' => $us->mobile ?? 'N/A',
                 'city' => $us->city ?? 'N/A',
                 'district' => $us->district ?? 'N/A',
                 'status' => $us->status ?? 'Active',
-                'secondaryContactName' => $us->secondary_contact_name ?? '',
-                'secondary_contact_name' => $us->secondary_contact_name ?? '',
+                'secondary_name' => $us->secondary_name ?? '',
+                'secondary_name' => $us->secondary_name ?? '',
                 'secondaryContactNumber' => $us->secondary_phone ?? '',
                 'secondary_contact_number' => $us->secondary_phone ?? '',
                 'secondary_phone' => $us->secondary_phone ?? '',
@@ -347,7 +347,7 @@ class VolunteerController extends Controller
     public function createUnitSquad(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'full_name' => 'required|string|max:255',
+            'primary_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'mobile' => 'required|string|unique:users,mobile',
             'city' => 'required|string|max:100',
@@ -365,11 +365,11 @@ class VolunteerController extends Controller
         $password = Str::random(10);
 
         $unitSquad = User::create([
-            'name' => $request->full_name,
-            'full_name' => $request->full_name,
+            'name' => $request->primary_name,
+            'primary_name' => $request->primary_name,
             'email' => $request->email,
             'mobile' => $request->mobile,
-            'secondary_contact_name' => $request->secondaryContactName ?? $request->secondary_contact_name ?? null,
+            'secondary_name' => $request->secondary_name ?? $request->secondary_name ?? null,
             'secondary_phone' => $request->secondaryContactNumber ?? $request->secondary_contact_number ?? $request->secondary_phone ?? null,
             'whatsapp_number' => $request->whatsapp_number ?? $request->whatsapp ?? null,
             'password_hash' => Hash::make($password),
@@ -406,7 +406,7 @@ class VolunteerController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'full_name' => 'sometimes|string',
+            'primary_name' => 'sometimes|string',
             'email' => 'sometimes|email|unique:users,email,' . $id,
             'mobile' => 'sometimes|string|unique:users,mobile,' . $id,
             'city' => 'sometimes|string',
@@ -422,16 +422,16 @@ class VolunteerController extends Controller
             ], 422);
         }
 
-        if ($request->has('full_name')) {
-            $unitSquad->full_name = $request->full_name;
-            $unitSquad->name = $request->full_name;
+        if ($request->has('primary_name')) {
+            $unitSquad->primary_name = $request->primary_name;
+            $unitSquad->name = $request->primary_name;
         }
         if ($request->has('email')) $unitSquad->email = $request->email;
         if ($request->has('mobile')) $unitSquad->mobile = $request->mobile;
         if ($request->has('city')) $unitSquad->city = $request->city;
         if ($request->has('district')) $unitSquad->district = $request->district;
-        if ($request->has('secondaryContactName') || $request->has('secondary_contact_name')) {
-            $unitSquad->secondary_contact_name = $request->secondaryContactName ?? $request->secondary_contact_name;
+        if ($request->has('secondary_name') || $request->has('secondary_name')) {
+            $unitSquad->secondary_name = $request->secondary_name ?? $request->secondary_name;
         }
         if ($request->has('secondaryContactNumber') || $request->has('secondary_contact_number') || $request->has('secondary_phone')) {
             $unitSquad->secondary_phone = $request->secondaryContactNumber ?? $request->secondary_contact_number ?? $request->secondary_phone;

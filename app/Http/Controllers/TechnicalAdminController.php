@@ -108,12 +108,12 @@ class TechnicalAdminController extends Controller
             return [
                 'id' => $sa->id,
                 'district' => $sa->district ?? 'Unassigned',
-                'full_name' => $sa->full_name ?? 'User',
+                'primary_name' => $sa->primary_name ?? 'User',
                 'email' => $sa->email,
                 'mobile' => $sa->mobile ?? 'N/A',
-                'secondaryContactName' => $sa->secondary_contact_name ?? '',
+                'secondary_name' => $sa->secondary_name ?? '',
                 'secondaryContactNumber' => $sa->secondary_phone ?? '',
-                'super_admin_1_name' => $sa->super_admin_1_name ?? $sa->full_name,
+                'super_admin_1_name' => $sa->super_admin_1_name ?? $sa->primary_name,
                 'super_admin_1_mobile' => $sa->mobile ?? 'N/A',
                 'status' => $sa->status ?? 'Active',
                 'created_at' => $sa->created_at ? $sa->created_at->toIso8601String() : null
@@ -133,7 +133,7 @@ class TechnicalAdminController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'district' => 'required|string',
-            'full_name' => 'required|string',
+            'primary_name' => 'required|string',
             'email' => 'required|email|unique:users,email',
             'mobile' => 'required|string|unique:users,mobile',
         ]);
@@ -149,14 +149,14 @@ class TechnicalAdminController extends Controller
         $generatedPassword = 'JL@' . Str::random(8);
         $passwordHash = Hash::make($generatedPassword);
 
-        $secName  = $request->secondaryContactName  ?? $request->secondary_contact_name  ?? null;
+        $secName  = $request->secondary_name  ?? $request->secondary_name  ?? null;
         $secPhone = $request->secondaryContactNumber ?? $request->secondary_contact_number ?? $request->secondary_phone ?? null;
         $whatsapp = $request->whatsapp_number ?? $request->whatsapp ?? null;
 
         // Build base payload — always safe columns
         $payload = [
-            'name'          => $request->full_name,
-            'full_name'     => $request->full_name,
+            'name'          => $request->primary_name,
+            'primary_name'     => $request->primary_name,
             'email'         => $request->email,
             'mobile'        => $request->mobile,
             'district'      => $request->district,
@@ -169,11 +169,11 @@ class TechnicalAdminController extends Controller
         ];
 
         // Only add optional columns if they actually exist in the DB schema
-        $hasSecName  = \Illuminate\Support\Facades\Schema::hasColumn('users', 'secondary_contact_name');
+        $hasSecName  = \Illuminate\Support\Facades\Schema::hasColumn('users', 'secondary_name');
         $hasSecPhone = \Illuminate\Support\Facades\Schema::hasColumn('users', 'secondary_phone');
         $hasWhatsapp = \Illuminate\Support\Facades\Schema::hasColumn('users', 'whatsapp_number');
 
-        if ($hasSecName  && $secName  !== null) $payload['secondary_contact_name'] = $secName;
+        if ($hasSecName  && $secName  !== null) $payload['secondary_name'] = $secName;
         if ($hasSecPhone && $secPhone !== null) $payload['secondary_phone']         = $secPhone;
         if ($hasWhatsapp && $whatsapp !== null) $payload['whatsapp_number']         = $whatsapp;
 
@@ -184,7 +184,7 @@ class TechnicalAdminController extends Controller
         $mailError = null;
         try {
             \Illuminate\Support\Facades\Mail::html(
-                "<p>Hello {$superAdmin->full_name},</p>"
+                "<p>Hello {$superAdmin->primary_name},</p>"
                 . "<p>Your District Super Admin account for {$superAdmin->district} District has been created successfully.</p>"
                 . "<p>Login Credentials:</p>"
                 . "<ul>"
@@ -215,7 +215,7 @@ class TechnicalAdminController extends Controller
             'data'       => [
                 'id'                 => $superAdmin->id,
                 'district'           => $superAdmin->district,
-                'full_name'          => $superAdmin->full_name,
+                'primary_name'          => $superAdmin->primary_name,
                 'email'              => $superAdmin->email,
                 'mobile'             => $superAdmin->mobile,
                 'status'             => $superAdmin->status,
@@ -240,7 +240,7 @@ class TechnicalAdminController extends Controller
 
         $validator = Validator::make($request->all(), [
             'district' => 'sometimes|string',
-            'full_name' => 'sometimes|string',
+            'primary_name' => 'sometimes|string',
             'email' => 'sometimes|email|unique:users,email,' . $id,
             'mobile' => 'sometimes|string',
             'status' => 'sometimes|string|in:Active,Inactive',
@@ -255,13 +255,14 @@ class TechnicalAdminController extends Controller
         }
 
         if ($request->has('district')) $superAdmin->district = $request->district;
-        if ($request->has('full_name')) {
-            $superAdmin->full_name = $request->full_name;
+        if ($request->has('primary_name')) {
+            $superAdmin->primary_name = $request->primary_name;
+            $superAdmin->name = $request->primary_name;
         }
         if ($request->has('email')) $superAdmin->email = $request->email;
         if ($request->has('mobile')) $superAdmin->mobile = $request->mobile;
-        if ($request->has('secondaryContactName') || $request->has('secondary_contact_name')) {
-            $superAdmin->secondary_contact_name = $request->secondaryContactName ?? $request->secondary_contact_name;
+        if ($request->has('secondary_name') || $request->has('secondary_name')) {
+            $superAdmin->secondary_name = $request->secondary_name ?? $request->secondary_name;
         }
         if ($request->has('secondaryContactNumber') || $request->has('secondary_contact_number') || $request->has('secondary_phone')) {
             $superAdmin->secondary_phone = $request->secondaryContactNumber ?? $request->secondary_contact_number ?? $request->secondary_phone;
@@ -277,7 +278,7 @@ class TechnicalAdminController extends Controller
             'data' => [
                 'id' => $superAdmin->id,
                 'district' => $superAdmin->district,
-                'full_name' => $superAdmin->full_name,
+                'primary_name' => $superAdmin->primary_name,
                 'email' => $superAdmin->email,
                 'mobile' => $superAdmin->mobile,
                 'status' => $superAdmin->status

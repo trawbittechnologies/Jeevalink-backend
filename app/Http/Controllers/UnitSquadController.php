@@ -64,7 +64,7 @@ class UnitSquadController extends Controller
     public function createUser(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'full_name' => 'required|string|max:255',
+            'primary_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'mobile' => 'required|string|unique:users,mobile',
             'blood_group' => 'required|string',
@@ -83,8 +83,8 @@ class UnitSquadController extends Controller
         $password = Str::random(10);
 
         $user = User::create([
-            'name' => $request->full_name,
-            'full_name' => $request->full_name,
+            'name' => $request->primary_name,
+            'primary_name' => $request->primary_name,
             'email' => $request->email,
             'mobile' => $request->mobile,
             'password_hash' => Hash::make($password),
@@ -122,7 +122,7 @@ class UnitSquadController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'full_name' => 'sometimes|string',
+            'primary_name' => 'sometimes|string',
             'email' => 'sometimes|email|unique:users,email,' . $id,
             'mobile' => 'sometimes|string|unique:users,mobile,' . $id,
             'blood_group' => 'sometimes|string',
@@ -138,9 +138,9 @@ class UnitSquadController extends Controller
             ], 422);
         }
 
-        if ($request->has('full_name')) {
-            $user->full_name = $request->full_name;
-            $user->name = $request->full_name;
+        if ($request->has('primary_name')) {
+            $user->primary_name = $request->primary_name;
+            $user->name = $request->primary_name;
         }
         if ($request->has('email')) $user->email = $request->email;
         if ($request->has('mobile')) $user->mobile = $request->mobile;
