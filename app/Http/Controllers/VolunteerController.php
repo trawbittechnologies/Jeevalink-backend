@@ -630,8 +630,8 @@ class VolunteerController extends Controller
         $blockName = trim($request->query('blockCommitteeName') ?: $request->query('block', ''));
         $meghala   = trim($request->query('meghala') ?: $request->query('unit', ''));
 
-        // Show block_admins, volunteers, and unit_squads in the public directory
-        $query = User::whereIn('role', ['block_admin', 'volunteer', 'unit_squad'])
+        // Show block_admins and volunteers in the public directory (exclude unit_squad)
+        $query = User::whereIn('role', ['block_admin', 'volunteer'])
             ->where('status', 'Active');
 
         // Always scope by district when provided
@@ -650,7 +650,7 @@ class VolunteerController extends Controller
 
         $users = $query
             ->select([
-                'id', 'primary_name', 'mobile', 'secondary_phone',
+                'id', 'primary_name', 'secondary_name', 'mobile', 'secondary_phone',
                 'whatsapp_number', 'blood_group', 'city', 'district',
                 'role', 'status', 'remarks', 'organization_name',
             ])
@@ -666,20 +666,27 @@ class VolunteerController extends Controller
             ->get()
             ->map(function ($u) {
                 return [
-                    'id'              => $u->id,
-                    'name'            => $u->primary_name ?? 'Volunteer',
-                    'primary_name'    => $u->primary_name ?? 'Volunteer',
-                    'mobile'          => $u->mobile ?? '',
-                    'phone'           => $u->mobile ?? '',
-                    'secondary_phone' => $u->secondary_phone ?? '',
-                    'whatsapp_number' => $u->whatsapp_number ?? '',
-                    'blood_group'     => $u->blood_group ?? 'N/A',
-                    'city'            => $u->city ?? '',
-                    'district'        => $u->district ?? '',
-                    'meghala'         => $u->city ?? '',  // city IS the meghala/area name
-                    'role'            => $u->role,
-                    'status'          => $u->status,
-                    'remarks'         => $u->remarks ?? '',
+                    'id'                       => $u->id,
+                    'name'                     => $u->primary_name ?? 'Volunteer',
+                    'primary_name'             => $u->primary_name ?? 'Volunteer',
+                    'primaryName'              => $u->primary_name ?? 'Volunteer',
+                    'secondary_name'           => $u->secondary_name ?? '',
+                    'secondaryName'            => $u->secondary_name ?? '',
+                    'person2Name'              => $u->secondary_name ?? '',
+                    'mobile'                   => $u->mobile ?? '',
+                    'phone'                    => $u->mobile ?? '',
+                    'secondary_phone'          => $u->secondary_phone ?? '',
+                    'secondaryContactNumber'   => $u->secondary_phone ?? '',
+                    'secondary_contact_number' => $u->secondary_phone ?? '',
+                    'person2Contact'           => $u->secondary_phone ?? '',
+                    'whatsapp_number'          => $u->whatsapp_number ?? '',
+                    'blood_group'              => $u->blood_group ?? 'N/A',
+                    'city'                     => $u->city ?? '',
+                    'district'                 => $u->district ?? '',
+                    'meghala'                  => $u->city ?? '',  // city IS the meghala/area name
+                    'role'                     => $u->role,
+                    'status'                   => $u->status,
+                    'remarks'                  => $u->remarks ?? '',
                 ];
             });
 
@@ -726,11 +733,8 @@ class VolunteerController extends Controller
             }
         }
 
-        // ── Step 2: Build meghalas_by_block from volunteer / unit_squad users ────
-        // Each volunteer/unit_squad's `city` field holds their Meghala (local unit) name.
-        // Because the flat schema has no block_id FK on volunteers, we scope meghalas
-        // to every block that belongs to the same district.
-        $volunteerRows = User::whereIn('role', ['volunteer', 'unit_squad'])
+        // Build meghalas_by_block strictly from volunteer (Meghala Admin) users (exclude unit_squad)
+        $volunteerRows = User::where('role', 'volunteer')
             ->whereNotNull('district')->where('district', '!=', '')
             ->whereNotNull('city')->where('city', '!=', '')
             ->select('district', 'city')
