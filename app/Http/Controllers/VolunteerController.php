@@ -424,7 +424,6 @@ class VolunteerController extends Controller
 
         if ($request->has('primary_name')) {
             $unitSquad->primary_name = $request->primary_name;
-            $unitSquad->name = $request->primary_name;
         }
         if ($request->has('email')) $unitSquad->email = $request->email;
         if ($request->has('mobile')) $unitSquad->mobile = $request->mobile;

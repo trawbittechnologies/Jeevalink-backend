@@ -1,11 +1,12 @@
 -- Jeevalink PostgreSQL Schema Definition
 
--- Drop tables if they exist to start fresh
 DROP TABLE IF EXISTS complaints CASCADE;
 DROP TABLE IF EXISTS notifications CASCADE;
 DROP TABLE IF EXISTS blood_requests CASCADE;
 DROP TABLE IF EXISTS password_reset_tokens CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS place_codes CASCADE;
+DROP TABLE IF EXISTS jeevalink_id_sequences CASCADE;
 
 -- Drop custom types if they exist
 DROP TYPE IF EXISTS user_role;
@@ -28,6 +29,7 @@ CREATE TYPE complaint_status AS ENUM ('Pending', 'Resolved');
 -- --------------------------------------------------------
 CREATE TABLE users (
   id BIGSERIAL PRIMARY KEY,
+  jeevalink_id VARCHAR(25) UNIQUE DEFAULT NULL,
   full_name VARCHAR(255) NOT NULL,
   email VARCHAR(255) NOT NULL UNIQUE,
   mobile VARCHAR(20) NOT NULL UNIQUE,
@@ -83,6 +85,33 @@ CREATE TABLE password_reset_tokens (
   email VARCHAR(255) PRIMARY KEY,
   token VARCHAR(255) NOT NULL,
   created_at TIMESTAMP NULL
+);
+
+-- --------------------------------------------------------
+-- Table structure for table place_codes
+-- --------------------------------------------------------
+CREATE TABLE place_codes (
+  id BIGSERIAL PRIMARY KEY,
+  place_name VARCHAR(255) NOT NULL,
+  place_type VARCHAR(50) NOT NULL,
+  code VARCHAR(3) NOT NULL UNIQUE,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_place_codes_name ON place_codes (place_name);
+
+-- --------------------------------------------------------
+-- Table structure for table jeevalink_id_sequences
+-- --------------------------------------------------------
+CREATE TABLE jeevalink_id_sequences (
+  id BIGSERIAL PRIMARY KEY,
+  role_code VARCHAR(2) NOT NULL,
+  place_code VARCHAR(3) NOT NULL,
+  latest_sequence INT NOT NULL DEFAULT 9,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(role_code, place_code)
 );
 
 -- --------------------------------------------------------
@@ -187,6 +216,16 @@ CREATE TRIGGER update_users_updated_at
 
 CREATE TRIGGER update_blood_requests_updated_at 
     BEFORE UPDATE ON blood_requests 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_place_codes_updated_at 
+    BEFORE UPDATE ON place_codes 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_jeevalink_id_sequences_updated_at 
+    BEFORE UPDATE ON jeevalink_id_sequences 
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
 

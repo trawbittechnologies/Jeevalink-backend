@@ -17,6 +17,7 @@ use App\Http\Controllers\BlockAdminController;
 use App\Http\Controllers\UnitSquadController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CampaignController;
+use App\Http\Controllers\TechnicalReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -139,6 +140,10 @@ Route::prefix('v1')->group(function () {
         Route::post('/admin/complaints', [AdminController::class, 'fileComplaint']);
         Route::post('/feedback', [FeedbackController::class, 'store']);
         Route::post('/support/tickets', [SupportTicketController::class, 'store']);
+
+        Route::get('/technical-reports', [TechnicalReportController::class, 'index']);
+        Route::post('/technical-reports', [TechnicalReportController::class, 'store']);
+        Route::post('/technical-reports/{id}/reply', [TechnicalReportController::class, 'reply']);
 
         // Campaign Hub Endpoints
         Route::post('/campaigns', [CampaignController::class, 'store']);

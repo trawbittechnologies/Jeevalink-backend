@@ -257,7 +257,6 @@ class TechnicalAdminController extends Controller
         if ($request->has('district')) $superAdmin->district = $request->district;
         if ($request->has('primary_name')) {
             $superAdmin->primary_name = $request->primary_name;
-            $superAdmin->name = $request->primary_name;
         }
         if ($request->has('email')) $superAdmin->email = $request->email;
         if ($request->has('mobile')) $superAdmin->mobile = $request->mobile;

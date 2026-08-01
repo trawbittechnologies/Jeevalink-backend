@@ -111,6 +111,14 @@ class BlockAdminController extends Controller
      */
     public function createVolunteer(Request $request)
     {
+        $user = $request->user() ?? auth()->user();
+        if ($user && !$request->has('district')) {
+            $request->merge(['district' => $user->district]);
+        }
+        if ($request->has('meghala') && !$request->has('city')) {
+            $request->merge(['city' => $request->meghala]);
+        }
+
         $validator = Validator::make($request->all(), [
             'primary_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
@@ -179,6 +187,10 @@ class BlockAdminController extends Controller
             ], 404);
         }
 
+        if ($request->has('meghala') && !$request->has('city')) {
+            $request->merge(['city' => $request->meghala]);
+        }
+
         $validator = Validator::make($request->all(), [
             'primary_name' => 'sometimes|string',
             'email' => 'sometimes|email|unique:users,email,' . $id,
@@ -198,7 +210,6 @@ class BlockAdminController extends Controller
 
         if ($request->has('primary_name')) {
             $volunteer->primary_name = $request->primary_name;
-            $volunteer->name = $request->primary_name;
         }
         if ($request->has('email')) $volunteer->email = $request->email;
         if ($request->has('mobile')) $volunteer->mobile = $request->mobile;

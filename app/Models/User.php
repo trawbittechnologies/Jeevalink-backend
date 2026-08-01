@@ -30,6 +30,7 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
+        'jeevalink_id',
         'primary_name',
         'email',
         'mobile',
@@ -227,7 +228,7 @@ class User extends Authenticatable
         $allowedFields = [
             'primary_name', 'secondary_name', 'blood_group', 'city', 'district', 
             'weight', 'dob', 'last_donated_date', 
-            'profile_picture', 'email', 'mobile', 'sex', 'pincode'
+            'profile_picture', 'email', 'mobile', 'secondary_phone', 'sex', 'pincode'
         ];
 
         $updates = [];

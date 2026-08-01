@@ -140,7 +140,6 @@ class UnitSquadController extends Controller
 
         if ($request->has('primary_name')) {
             $user->primary_name = $request->primary_name;
-            $user->name = $request->primary_name;
         }
         if ($request->has('email')) $user->email = $request->email;
         if ($request->has('mobile')) $user->mobile = $request->mobile;

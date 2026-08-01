@@ -82,7 +82,7 @@ class AuthController extends Controller
             $profilePicturePath = $request->file('profile_picture')->store('profile_pictures', 'public');
         }
 
-        $user = User::create([
+        $user = new User([
             'primary_name' => $request->primary_name,
             'email' => $request->email,
             'mobile' => $request->mobile,
@@ -104,6 +104,11 @@ class AuthController extends Controller
             'status' => $status,
             'sex' => $request->sex ?? null,
         ]);
+
+        $idService = new \App\Services\JeevalinkIdService();
+        $user->jeevalink_id = $idService->generateId($user);
+        
+        $user->save();
 
         $token = JWT::generateToken($user->id, $user->role);
 

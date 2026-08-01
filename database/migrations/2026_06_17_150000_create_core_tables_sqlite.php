@@ -19,6 +19,9 @@ return new class extends Migration
 
         // ── Extend users table with all app-required fields ──────────────────
         Schema::table('users', function (Blueprint $table) {
+            if (!Schema::hasColumn('users', 'jeevalink_id')) {
+                $table->string('jeevalink_id', 25)->nullable()->unique();
+            }
             if (!Schema::hasColumn('users', 'mobile')) {
                 $table->string('mobile', 20)->nullable()->unique();
             }

@@ -13,17 +13,20 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             if (Schema::hasColumn('users', 'full_name')) {
-                $table->dropColumn('full_name');
+                $table->renameColumn('full_name', 'primary_name');
+            } elseif (Schema::hasColumn('users', 'name')) {
+                $table->renameColumn('name', 'primary_name');
+            } elseif (!Schema::hasColumn('users', 'primary_name')) {
+                $table->string('primary_name')->nullable();
             }
+
             if (Schema::hasColumn('users', 'primary_contact_name')) {
                 $table->dropColumn('primary_contact_name');
             }
             
-            $table->renameColumn('name', 'primary_name');
-            
             if (Schema::hasColumn('users', 'secondary_contact_name')) {
                 $table->renameColumn('secondary_contact_name', 'secondary_name');
-            } else {
+            } else if (!Schema::hasColumn('users', 'secondary_name')) {
                 $table->string('secondary_name')->nullable();
             }
         });
