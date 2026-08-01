@@ -92,17 +92,17 @@ class UnitSquadController extends Controller
             'blood_group' => $request->blood_group,
             'city' => $request->city,
             'district' => $request->district,
-            'status' => 'Active',
-            'is_verified' => true,
+            'status' => 'Pending Approval',
+            'is_verified' => false,
             'available_for_donation' => true,
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'User created successfully.',
+            'message' => 'User created successfully! Pending verification by Meghala Volunteer.',
             'data' => [
                 'user' => User::findById($user->id),
-                'generated_password' => $password
+                'generated_password' => null
             ]
         ], 201);
     }

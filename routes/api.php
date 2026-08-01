@@ -29,6 +29,8 @@ Route::prefix('v1')->group(function () {
     Route::get('/location/pincode/{pincode}', [AuthController::class, 'pincodeLookup']);
     Route::get('/partners', [PartnerController::class, 'index']);
     Route::get('/campaigns', [CampaignController::class, 'index']);
+    Route::get('/public/volunteers', [VolunteerController::class, 'publicVolunteerDirectory']);
+    Route::get('/public/volunteer-options', [VolunteerController::class, 'publicVolunteerOptions']);
 
     // ─── Authenticated Group ─────────────────────────────────────────────
     Route::put('/test-update/{id}', [SuperAdminController::class, 'updateBlockAdmin']);
@@ -85,14 +87,24 @@ Route::prefix('v1')->group(function () {
             Route::get('/volunteer/unit-squads', [VolunteerController::class, 'getUnitSquads']);
             Route::post('/volunteer/unit-squads', [VolunteerController::class, 'createUnitSquad']);
             Route::put('/volunteer/unit-squads/{id}', [VolunteerController::class, 'updateUnitSquad']);
+            Route::patch('/volunteer/unit-squads/{id}/status', [VolunteerController::class, 'updateUnitSquadStatus']);
+            Route::put('/volunteer/unit-squads/{id}/status', [VolunteerController::class, 'updateUnitSquadStatus']);
             Route::delete('/volunteer/unit-squads/{id}', [VolunteerController::class, 'deleteUnitSquad']);
+            Route::get('/volunteer/requests/pending', [VolunteerController::class, 'pendingRequests']);
+        });
 
-            // Volunteer OTP & Update Routes
+        // ── Unit Squad & Volunteer User Management Endpoints (Level 5 & higher) ──
+        Route::middleware('jwt.role:unit_squad')->group(function () {
             Route::post('/volunteer/users', [VolunteerController::class, 'addUser']);
             Route::post('/volunteer/users/{id}/send-otp', [VolunteerController::class, 'sendOtp']);
             Route::post('/volunteer/users/{id}/verify-otp', [VolunteerController::class, 'verifyOtp']);
             Route::patch('/volunteer/users/{id}', [VolunteerController::class, 'updateUser']);
+            Route::post('/volunteer/users/{id}', [VolunteerController::class, 'updateUser']);
+            Route::post('/volunteer/users/{id}/verify-user', [VolunteerController::class, 'verifyUser']);
+            Route::post('/volunteer/users/{id}/reject-user', [VolunteerController::class, 'rejectUser']);
+            Route::delete('/volunteer/users/{id}', [VolunteerController::class, 'deleteUser']);
         });
+
 
         // ── Unit Squad Endpoints (Level 5) ────────────────────────────────
         Route::middleware('jwt.role:unit_squad')->group(function () {
@@ -128,6 +140,8 @@ Route::prefix('v1')->group(function () {
         Route::patch('/requests/{id}/fulfill', [RequestController::class, 'fulfill']);
         Route::delete('/requests/{id}', [RequestController::class, 'destroy']);
         Route::patch('/requests/{id}/verify', [RequestController::class, 'verify']);
+        Route::patch('/requests/{id}/approve', [RequestController::class, 'verify']);
+        Route::post('/requests/{id}/top-donors', [RequestController::class, 'topDonors']);
 
         Route::get('/donors/search', [DonorController::class, 'search']);
         Route::get('/donors/live-count', [DonorController::class, 'liveCount']);
@@ -153,9 +167,12 @@ Route::prefix('v1')->group(function () {
         Route::post('/campaigns/{id}/like', [CampaignController::class, 'toggleLike']);
         Route::post('/campaigns/{id}/share', [CampaignController::class, 'incrementShare']);
 
+        Route::middleware('jwt.role:unit_squad')->group(function () {
+            Route::get('/admin/users', [AdminController::class, 'getUsers']);
+        });
+
         // Management Endpoints (Accessible by Block Admin level and higher)
         Route::middleware('jwt.role:block_admin')->group(function () {
-            Route::get('/admin/users', [AdminController::class, 'getUsers']);
             Route::post('/admin/volunteers', [AdminController::class, 'addVolunteer']);
             Route::get('/admin/complaints', [AdminController::class, 'getComplaints']);
             Route::patch('/admin/complaints/{id}/resolve', [AdminController::class, 'resolveComplaint']);

@@ -158,10 +158,42 @@ class VolunteerController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'User updated successfully.',
+            'message' => 'User details updated successfully',
             'data' => [
                 'user' => User::findById($user->id)
             ]
+        ]);
+    }
+
+    /**
+     * Delete a user.
+     * Volunteers can only delete users in their scope (same city).
+     */
+    public function deleteUser(Request $request, $id)
+    {
+        $auth = $request->user() ?? auth()->user();
+        $user = User::find((int)$id);
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found.',
+            ], 404);
+        }
+
+        // Prevent deleting admin or volunteer accounts
+        if (in_array($user->role, ['super_admin', 'technical_admin', 'block_admin', 'volunteer'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized to delete admin or volunteer accounts.',
+            ], 403);
+        }
+
+        $user->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User deleted successfully.'
         ]);
     }
 
@@ -174,20 +206,21 @@ class VolunteerController extends Controller
             'primary_name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'mobile' => 'required|string|max:20',
-            'role' => 'nullable|in:user',
+            'role' => 'nullable|in:user,donor,receiver',
             'city' => 'required|string|max:100',
             'district' => 'required|string|max:100',
             'blood_group' => 'required|string',
             'dob' => 'required|date',
             'sex' => 'required|in:male,female,transgender',
             'pincode' => 'required|string|size:6',
-            'full_address' => 'required|string|min:5',
-            'id_proof_front' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
-            'id_proof_back' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'full_address' => 'nullable|string|min:5',
+            'id_proof_front' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'id_proof_back' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'profile_picture' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         if ($validator->fails()) {
+            \Illuminate\Support\Facades\Log::error('Add user validation failed:', $validator->errors()->toArray());
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
@@ -244,9 +277,39 @@ class VolunteerController extends Controller
             'id_proof_front' => $idProofFrontPath,
             'id_proof_back' => $idProofBackPath,
             'profile_picture' => $profilePicturePath,
-            'status' => 'Active',
-            'is_verified' => true,
+            'status' => 'Pending Approval',
+            'is_verified' => false,
         ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User added successfully! Pending verification by Meghala Volunteer.',
+            'data' => [
+                'user' => User::findById($user->id),
+                'email_sent' => false,
+                'generated_password' => null,
+            ]
+        ], 201);
+    }
+
+    /**
+     * Verify a user and send login credentials.
+     */
+    public function verifyUser(Request $request, $id)
+    {
+        $user = User::find((int)$id);
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found.',
+            ], 404);
+        }
+
+        $password = Str::random(10);
+        $user->password_hash = Hash::make($password);
+        $user->is_verified = true;
+        $user->status = 'Active';
+        $user->save();
 
         $emailSent = false;
         try {
@@ -256,21 +319,46 @@ class VolunteerController extends Controller
             );
             $emailSent = true;
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error("[addUser] Failed to send welcome email to {$user->email}: " . $e->getMessage());
-            \Illuminate\Support\Facades\Log::error("[addUser] SMTP Config: host=" . env('MAIL_HOST') . " port=" . env('MAIL_PORT') . " user=" . env('MAIL_USERNAME') . " enc=" . env('MAIL_ENCRYPTION'));
-            \Illuminate\Support\Facades\Log::error($e->getTraceAsString());
+            \Illuminate\Support\Facades\Log::error("[verifyUser] Failed to send welcome email to {$user->email}: " . $e->getMessage());
         }
 
         return response()->json([
             'success' => true,
-            'message' => $emailSent ? 'User added successfully and credentials sent to email.' : 'User added successfully, but failed to send credentials email. Please share the password manually.',
+            'message' => $emailSent ? 'User verified and activated! Login credentials sent to email.' : 'User verified, but failed to send credential email.',
             'data' => [
                 'user' => User::findById($user->id),
                 'email_sent' => $emailSent,
                 'generated_password' => $emailSent ? null : $password,
             ]
-        ], 201);
+        ]);
     }
+
+    /**
+     * Reject a user registration.
+     */
+    public function rejectUser(Request $request, $id)
+    {
+        $user = User::find((int)$id);
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found.',
+            ], 404);
+        }
+
+        $user->is_verified = false;
+        $user->status = 'Rejected';
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User registration rejected.',
+            'data' => [
+                'user' => User::findById($user->id)
+            ]
+        ]);
+    }
+
 
     /**
      * Get Volunteer dashboard metrics.
@@ -362,7 +450,7 @@ class VolunteerController extends Controller
             ], 422);
         }
 
-        $password = Str::random(10);
+        $password = $request->password ?: Str::random(10);
 
         $unitSquad = User::create([
             'name' => $request->primary_name,
@@ -448,6 +536,44 @@ class VolunteerController extends Controller
     }
 
     /**
+     * Update Unit Squad status and handle credential resets.
+     */
+    public function updateUnitSquadStatus(Request $request, $id)
+    {
+        $unitSquad = User::where('role', 'unit_squad')->find($id);
+
+        if (!$unitSquad) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unit Squad member not found.'
+            ], 404);
+        }
+
+        if ($request->has('status')) {
+            $unitSquad->status = $request->status;
+        }
+
+        $generatedPassword = null;
+        if ($request->boolean('resend_credentials') || $request->has('password')) {
+            $rawPass = $request->password ?: Str::random(10);
+            $unitSquad->password_hash = Hash::make($rawPass);
+            $unitSquad->password = $rawPass;
+            $generatedPassword = $rawPass;
+        }
+
+        $unitSquad->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Unit Squad status updated successfully.',
+            'data' => [
+                'squad' => User::findById($unitSquad->id),
+                'generated_password' => $generatedPassword
+            ]
+        ]);
+    }
+
+    /**
      * Delete Unit Squad.
      */
     public function deleteUnitSquad(Request $request, $id)
@@ -468,5 +594,187 @@ class VolunteerController extends Controller
             'message' => 'Unit Squad member deleted successfully.'
         ]);
     }
+
+    /**
+     * Fetch pending requests for volunteers.
+     */
+    public function pendingRequests(Request $request)
+    {
+        $requests = \App\Models\BloodRequest::getAll(['verified' => '0']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pending requests retrieved successfully.',
+            'data' => [
+                'requests' => $requests
+            ]
+        ]);
+    }
+
+    /**
+     * Public endpoint to fetch volunteers and block committee contacts for visitors.
+     *
+     * Hierarchy (flat users table):
+     *   District  → users.district
+     *   Block     → city of block_admin users in that district
+     *   Meghala   → city of volunteer / unit_squad users in that district
+     *
+     * Query params:
+     *   district            (string) — filter by district name
+     *   blockCommitteeName  (string) — the block admin's city (used for district scope)
+     *   meghala             (string) — the volunteer/unit_squad's city
+     */
+    public function publicVolunteerDirectory(Request $request)
+    {
+        $district  = trim($request->query('district', ''));
+        $blockName = trim($request->query('blockCommitteeName') ?: $request->query('block', ''));
+        $meghala   = trim($request->query('meghala') ?: $request->query('unit', ''));
+
+        // Show block_admins, volunteers, and unit_squads in the public directory
+        $query = User::whereIn('role', ['block_admin', 'volunteer', 'unit_squad'])
+            ->where('status', 'Active');
+
+        // Always scope by district when provided
+        if ($district !== '') {
+            $query->where('district', $district);
+        }
+
+        // If a specific meghala (volunteer city) is selected, show ONLY that meghala's contacts.
+        // Use exact case-insensitive match so "cheemeni" does NOT match "cheemeni east".
+        if ($meghala !== '' && $meghala !== 'All' && $meghala !== 'All Meghala Units') {
+            $query->whereRaw('LOWER(city) = ?', [strtolower($meghala)]);
+        }
+        // If only a block is selected (no meghala filter) — return everyone in the district:
+        // the block admin(s) and all volunteers/unit_squads in the same district.
+        // (No additional filter needed — district filter above already scopes correctly.)
+
+        $users = $query
+            ->select([
+                'id', 'primary_name', 'mobile', 'secondary_phone',
+                'whatsapp_number', 'blood_group', 'city', 'district',
+                'role', 'status', 'remarks', 'organization_name',
+            ])
+            ->orderByRaw("
+                CASE
+                    WHEN role = 'block_admin'  THEN 0
+                    WHEN role = 'unit_squad'   THEN 1
+                    WHEN role = 'volunteer'    THEN 2
+                    ELSE 3
+                END
+            ")
+            ->take(100)
+            ->get()
+            ->map(function ($u) {
+                return [
+                    'id'              => $u->id,
+                    'name'            => $u->primary_name ?? 'Volunteer',
+                    'primary_name'    => $u->primary_name ?? 'Volunteer',
+                    'mobile'          => $u->mobile ?? '',
+                    'phone'           => $u->mobile ?? '',
+                    'secondary_phone' => $u->secondary_phone ?? '',
+                    'whatsapp_number' => $u->whatsapp_number ?? '',
+                    'blood_group'     => $u->blood_group ?? 'N/A',
+                    'city'            => $u->city ?? '',
+                    'district'        => $u->district ?? '',
+                    'meghala'         => $u->city ?? '',  // city IS the meghala/area name
+                    'role'            => $u->role,
+                    'status'          => $u->status,
+                    'remarks'         => $u->remarks ?? '',
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Volunteer directory fetched successfully.',
+            'data'    => $users,
+        ]);
+    }
+
+    /**
+     * Public endpoint to fetch distinct database options for the volunteer directory.
+     *
+     * Returns:
+     *   blocks_by_district  — { "Kasaragod": ["Nileswar", ...], ... }
+     *     Derived from block_admin users: their `city` field IS their Block Committee name.
+     *
+     *   meghalas_by_block   — { "Nileswar": ["cheemeni", "cheemeni east", ...], ... }
+     *     Derived from volunteer / unit_squad users: their `city` field IS their Meghala name.
+     *     Meghalas are grouped under every block that belongs to the same district,
+     *     since the flat users table has no direct block↔volunteer foreign key.
+     */
+    public function publicVolunteerOptions(Request $request)
+    {
+        // ── Step 1: Build blocks_by_district from block_admin users ──────────────
+        // Each block_admin's `city` field holds the name of their Block Committee.
+        $blockAdmins = User::where('role', 'block_admin')
+            ->whereNotNull('district')->where('district', '!=', '')
+            ->whereNotNull('city')->where('city', '!=', '')
+            ->select('district', 'city')
+            ->get();
+
+        $blocksByDistrict = [];
+        foreach ($blockAdmins as $ba) {
+            $dist      = trim($ba->district);
+            $blockName = trim($ba->city);
+            if ($dist && $blockName) {
+                if (!isset($blocksByDistrict[$dist])) {
+                    $blocksByDistrict[$dist] = [];
+                }
+                if (!in_array($blockName, $blocksByDistrict[$dist], true)) {
+                    $blocksByDistrict[$dist][] = $blockName;
+                }
+            }
+        }
+
+        // ── Step 2: Build meghalas_by_block from volunteer / unit_squad users ────
+        // Each volunteer/unit_squad's `city` field holds their Meghala (local unit) name.
+        // Because the flat schema has no block_id FK on volunteers, we scope meghalas
+        // to every block that belongs to the same district.
+        $volunteerRows = User::whereIn('role', ['volunteer', 'unit_squad'])
+            ->whereNotNull('district')->where('district', '!=', '')
+            ->whereNotNull('city')->where('city', '!=', '')
+            ->select('district', 'city')
+            ->get();
+
+        // Index volunteer cities by district for fast lookup
+        $meghalasByDistrict = [];
+        foreach ($volunteerRows as $vr) {
+            $dist    = trim($vr->district);
+            $meghala = trim($vr->city);
+            if ($dist && $meghala) {
+                if (!isset($meghalasByDistrict[$dist])) {
+                    $meghalasByDistrict[$dist] = [];
+                }
+                if (!in_array($meghala, $meghalasByDistrict[$dist], true)) {
+                    $meghalasByDistrict[$dist][] = $meghala;
+                }
+            }
+        }
+
+        // Map meghalas under each block (all meghalas in a district → all blocks in that district)
+        $meghalasByBlock = [];
+        foreach ($blocksByDistrict as $dist => $blocks) {
+            $distMeghalas = $meghalasByDistrict[$dist] ?? [];
+            foreach ($blocks as $block) {
+                if (!isset($meghalasByBlock[$block])) {
+                    $meghalasByBlock[$block] = [];
+                }
+                foreach ($distMeghalas as $meghala) {
+                    if (!in_array($meghala, $meghalasByBlock[$block], true)) {
+                        $meghalasByBlock[$block][] = $meghala;
+                    }
+                }
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'blocks_by_district' => $blocksByDistrict,
+                'meghalas_by_block'  => $meghalasByBlock,
+            ],
+        ]);
+    }
 }
+
 

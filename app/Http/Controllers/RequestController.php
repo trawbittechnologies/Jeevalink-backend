@@ -315,4 +315,47 @@ class RequestController extends Controller
             ]
         ]);
     }
+
+    /**
+     * Get top 5 recommended donors for a blood request.
+     */
+    public function topDonors(Request $request, $id)
+    {
+        $requestId = (int)$id;
+        $bloodRequest = BloodRequest::find($requestId);
+
+        if (!$bloodRequest) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Blood request not found.',
+                'errors' => []
+            ], 404);
+        }
+
+        $compatibilityMap = [
+            'A+' => ['A+', 'A-', 'O+', 'O-'],
+            'A-' => ['A-', 'O-'],
+            'B+' => ['B+', 'B-', 'O+', 'O-'],
+            'B-' => ['B-', 'O-'],
+            'AB+' => ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
+            'AB-' => ['A-', 'B-', 'AB-', 'O-'],
+            'O+' => ['O+', 'O-'],
+            'O-' => ['O-'],
+        ];
+
+        $compatibleGroups = $compatibilityMap[$bloodRequest->blood_group] ?? [$bloodRequest->blood_group];
+
+        $donors = User::whereIn('blood_group', $compatibleGroups)
+            ->where('available_for_donation', true)
+            ->where('status', 'Active')
+            ->where('role', 'user')
+            ->limit(5)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Top recommended donors retrieved successfully.',
+            'data' => $donors
+        ]);
+    }
 }
